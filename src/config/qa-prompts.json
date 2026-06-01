@@ -1,0 +1,865 @@
+{
+  "code": {
+    "python": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are type hints and docstrings complete for exported functions?",
+        "Are unsafe dynamic execution paths (exec/eval) avoided?"
+      ],
+      "automatedChecks": [
+        "ruff check {file}",
+        "mypy {file}",
+        "pytest -q"
+      ]
+    },
+    "typescript": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are strong types used without unnecessary any/unknown escape hatches?",
+        "Are async flows typed and guarded with explicit error handling?"
+      ],
+      "automatedChecks": [
+        "npm run lint -- {file}",
+        "npm run test -- --runInBand"
+      ]
+    },
+    "javascript": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Is modern syntax used with explicit promise rejection handling?",
+        "Are mutable globals and accidental shared-state mutations avoided?"
+      ],
+      "automatedChecks": [
+        "npm run lint -- {file}"
+      ]
+    },
+    "java": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are nullability and Optional usage consistent and safe?",
+        "Are streams/collections usage and complexity reasonable for scale?"
+      ],
+      "automatedChecks": [
+        "./gradlew check"
+      ]
+    },
+    "go": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are errors wrapped with context and returned consistently?",
+        "Are goroutines synchronized safely with cancellation and cleanup?"
+      ],
+      "automatedChecks": [
+        "go test ./...",
+        "go vet ./..."
+      ]
+    },
+    "rust": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are ownership/borrowing choices clear and free of unsafe blocks where avoidable?",
+        "Are Result/Option paths handled without panics in production flows?"
+      ],
+      "automatedChecks": [
+        "cargo fmt --check",
+        "cargo clippy -- -D warnings",
+        "cargo test"
+      ]
+    },
+    "csharp": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are nullable reference types and async Task flows handled correctly?",
+        "Is DI usage testable without hidden service-locator patterns?"
+      ],
+      "automatedChecks": [
+        "dotnet format --verify-no-changes",
+        "dotnet test"
+      ]
+    },
+    "ruby": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are ActiveRecord query patterns avoiding N+1 and callback side-effects?",
+        "Are service boundaries explicit with clear return contracts?"
+      ],
+      "automatedChecks": [
+        "bundle exec rubocop",
+        "bundle exec rspec"
+      ]
+    },
+    "php": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are strict types and input validation used consistently?",
+        "Are framework lifecycle hooks used without hidden global state?"
+      ],
+      "automatedChecks": [
+        "composer test",
+        "vendor/bin/phpstan analyse"
+      ]
+    },
+    "kotlin": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are nullability constraints and sealed states modeled clearly?",
+        "Are coroutine scopes structured to prevent leaks and orphan jobs?"
+      ],
+      "automatedChecks": [
+        "./gradlew detekt",
+        "./gradlew test"
+      ]
+    },
+    "swift": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are value/reference semantics and thread boundaries explicit?",
+        "Are async/await and actor isolation used safely?"
+      ],
+      "automatedChecks": [
+        "swift test"
+      ]
+    },
+    "dart": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are null safety constraints respected throughout API boundaries?",
+        "Are widget rebuilds and state updates scoped correctly?"
+      ],
+      "automatedChecks": [
+        "dart analyze",
+        "dart test"
+      ]
+    },
+    "shell": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are shell options strict (`set -euo pipefail`) where appropriate?",
+        "Are quoting and argument escaping safe against injection and globbing issues?"
+      ],
+      "automatedChecks": [
+        "shellcheck {file}"
+      ]
+    },
+    "sql": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are queries indexed and bounded to avoid full scans on hot paths?",
+        "Are transaction boundaries, locking, and rollback semantics explicit?"
+      ]
+    },
+    "graphql": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are schema evolutions backward-compatible and deprecation-safe?",
+        "Are resolver-level auth and data-loader batching implemented?"
+      ]
+    },
+    "react": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are render paths memoized where needed to avoid unnecessary re-renders?",
+        "Are hooks dependencies complete and side effects cleanup-safe?"
+      ],
+      "automatedChecks": [
+        "npm run lint -- {file}",
+        "npm run test -- --runInBand"
+      ]
+    },
+    "vue": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are reactive refs/computed usage avoiding stale state and hidden watchers?",
+        "Are component contracts explicit with typed props/events?"
+      ],
+      "automatedChecks": [
+        "npm run lint -- {file}",
+        "npm run test -- --runInBand"
+      ]
+    },
+    "angular": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are services/components split by responsibility and DI scope clear?",
+        "Are RxJS subscriptions disposed and error flows handled?"
+      ],
+      "automatedChecks": [
+        "npm run lint -- {file}",
+        "npm run test -- --watch=false"
+      ]
+    },
+    "nextjs": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are server/client boundaries and data-fetching strategies explicit?",
+        "Are cache/revalidation policies configured for correctness and cost?"
+      ],
+      "automatedChecks": [
+        "npm run lint -- {file}",
+        "npm run test -- --runInBand"
+      ]
+    },
+    "nestjs": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are module boundaries and provider scopes correctly isolated?",
+        "Are DTO validation and exception filters consistently enforced?"
+      ],
+      "automatedChecks": [
+        "npm run lint -- {file}",
+        "npm run test -- --runInBand"
+      ]
+    },
+    "express": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are request validation, auth guards, and error middleware consistently applied?",
+        "Are route handlers thin with business logic delegated to services?"
+      ],
+      "automatedChecks": [
+        "npm run lint -- {file}",
+        "npm run test -- --runInBand"
+      ]
+    },
+    "fastify": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are schemas declared for params/query/body/response for every route?",
+        "Are plugin scopes and encapsulation boundaries used correctly?"
+      ],
+      "automatedChecks": [
+        "npm run lint -- {file}",
+        "npm run test -- --runInBand"
+      ]
+    },
+    "node": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are process lifecycle handlers (signals/shutdown) graceful and idempotent?",
+        "Are event-loop blocking operations avoided in critical paths?"
+      ],
+      "automatedChecks": [
+        "npm run lint -- {file}",
+        "npm run test -- --runInBand"
+      ]
+    },
+    "terraform": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are modules reusable with explicit inputs/outputs and validation rules?",
+        "Are state, drift, and blast-radius concerns documented?"
+      ],
+      "automatedChecks": [
+        "terraform fmt -check",
+        "terraform validate"
+      ]
+    },
+    "ansible": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are playbooks idempotent with explicit changed_when/failed_when behavior?",
+        "Are secrets and inventories handled securely and environment-scoped?"
+      ],
+      "automatedChecks": [
+        "ansible-lint"
+      ]
+    },
+    "general": {
+      "prompts": [
+        "Is implementation behavior correct for happy-path and edge cases?",
+        "Are failure paths explicit, observable, and recoverable?",
+        "Are side effects minimized and dependencies clearly bounded?",
+        "Is naming and structure maintainable for future contributors?",
+        "Are instrumentation and logging sufficient for debugging production failures?",
+        "Are test updates aligned to behavior changes?"
+      ]
+    }
+  },
+  "documentation": {
+    "readme": {
+      "prompts": [
+        "Is the intended audience clear in opening sections?",
+        "Are instructions complete and validated against current behavior?",
+        "Are assumptions, prerequisites, and constraints explicit?",
+        "Are references and links actionable and up to date?",
+        "Are installation and quick-start commands copy-paste runnable?",
+        "Are compatibility and support-policy statements explicit?"
+      ]
+    },
+    "api-docs": {
+      "prompts": [
+        "Is the intended audience clear in opening sections?",
+        "Are instructions complete and validated against current behavior?",
+        "Are assumptions, prerequisites, and constraints explicit?",
+        "Are references and links actionable and up to date?",
+        "Are endpoints documented with request/response examples and failure modes?",
+        "Are auth, rate-limit, and pagination semantics explicit?"
+      ]
+    },
+    "technical-guide": {
+      "prompts": [
+        "Is the intended audience clear in opening sections?",
+        "Are instructions complete and validated against current behavior?",
+        "Are assumptions, prerequisites, and constraints explicit?",
+        "Are references and links actionable and up to date?",
+        "Is the explanation layered from concept to implementation detail?",
+        "Are tradeoffs and alternatives documented where decisions were made?"
+      ]
+    },
+    "architecture": {
+      "prompts": [
+        "Is the intended audience clear in opening sections?",
+        "Are instructions complete and validated against current behavior?",
+        "Are assumptions, prerequisites, and constraints explicit?",
+        "Are references and links actionable and up to date?",
+        "Are component boundaries, data flow, and failure boundaries described clearly?",
+        "Are diagrams/code references current with implementation?"
+      ]
+    },
+    "runbook": {
+      "prompts": [
+        "Is the intended audience clear in opening sections?",
+        "Are instructions complete and validated against current behavior?",
+        "Are assumptions, prerequisites, and constraints explicit?",
+        "Are references and links actionable and up to date?",
+        "Are operational playbooks actionable under incident pressure?",
+        "Are rollback, escalation, and verification steps explicit?"
+      ]
+    },
+    "changelog": {
+      "prompts": [
+        "Is the intended audience clear in opening sections?",
+        "Are instructions complete and validated against current behavior?",
+        "Are assumptions, prerequisites, and constraints explicit?",
+        "Are references and links actionable and up to date?",
+        "Are changes grouped by impact with migration notes where needed?",
+        "Are breaking changes and deprecations called out prominently?"
+      ]
+    },
+    "contributing": {
+      "prompts": [
+        "Is the intended audience clear in opening sections?",
+        "Are instructions complete and validated against current behavior?",
+        "Are assumptions, prerequisites, and constraints explicit?",
+        "Are references and links actionable and up to date?",
+        "Are local setup, test, lint, and PR expectations explicit?",
+        "Are code style and review standards unambiguous?"
+      ]
+    },
+    "adr": {
+      "prompts": [
+        "Is the intended audience clear in opening sections?",
+        "Are instructions complete and validated against current behavior?",
+        "Are assumptions, prerequisites, and constraints explicit?",
+        "Are references and links actionable and up to date?",
+        "Is context, decision, alternatives, and consequences clearly captured?",
+        "Are superseded/related ADR links included?"
+      ]
+    },
+    "onboarding": {
+      "prompts": [
+        "Is the intended audience clear in opening sections?",
+        "Are instructions complete and validated against current behavior?",
+        "Are assumptions, prerequisites, and constraints explicit?",
+        "Are references and links actionable and up to date?",
+        "Can a new contributor reach productive output in one session?",
+        "Are permissions/tooling prerequisites and contacts listed?"
+      ]
+    },
+    "troubleshooting": {
+      "prompts": [
+        "Is the intended audience clear in opening sections?",
+        "Are instructions complete and validated against current behavior?",
+        "Are assumptions, prerequisites, and constraints explicit?",
+        "Are references and links actionable and up to date?",
+        "Are error signatures mapped to concrete diagnosis and fixes?",
+        "Are quick checks and deep-dive paths both included?"
+      ]
+    },
+    "release-notes": {
+      "prompts": [
+        "Is the intended audience clear in opening sections?",
+        "Are instructions complete and validated against current behavior?",
+        "Are assumptions, prerequisites, and constraints explicit?",
+        "Are references and links actionable and up to date?",
+        "Are user-facing changes, fixes, and known issues clearly summarized?",
+        "Are upgrade and rollback instructions complete?"
+      ]
+    },
+    "incident-report": {
+      "prompts": [
+        "Is the intended audience clear in opening sections?",
+        "Are instructions complete and validated against current behavior?",
+        "Are assumptions, prerequisites, and constraints explicit?",
+        "Are references and links actionable and up to date?",
+        "Are timeline, impact, root cause, and corrective actions explicit?",
+        "Are follow-up owners and due dates tracked?"
+      ]
+    },
+    "faq": {
+      "prompts": [
+        "Is the intended audience clear in opening sections?",
+        "Are instructions complete and validated against current behavior?",
+        "Are assumptions, prerequisites, and constraints explicit?",
+        "Are references and links actionable and up to date?",
+        "Are top recurring questions answered concisely with references?",
+        "Are answers scoped by audience role where necessary?"
+      ]
+    },
+    "general": {
+      "prompts": [
+        "Is the intended audience clear in opening sections?",
+        "Are instructions complete and validated against current behavior?",
+        "Are assumptions, prerequisites, and constraints explicit?",
+        "Are references and links actionable and up to date?"
+      ]
+    }
+  },
+  "configuration": {
+    "json": {
+      "prompts": [
+        "Is syntax valid and structure consistent with expected schema?",
+        "Are required keys present with safe and typed values?",
+        "Are sensitive values excluded, masked, or externalized?",
+        "Are environment overrides and defaults clearly documented?",
+        "Are schema versioning and backward compatibility expectations clear?"
+      ],
+      "automatedChecks": [
+        "node -e \"JSON.parse(require('fs').readFileSync('{file}','utf8'))\""
+      ]
+    },
+    "yaml": {
+      "prompts": [
+        "Is syntax valid and structure consistent with expected schema?",
+        "Are required keys present with safe and typed values?",
+        "Are sensitive values excluded, masked, or externalized?",
+        "Are environment overrides and defaults clearly documented?",
+        "Are indentation, anchors, and merges deterministic and readable?"
+      ]
+    },
+    "env": {
+      "prompts": [
+        "Is syntax valid and structure consistent with expected schema?",
+        "Are required keys present with safe and typed values?",
+        "Are sensitive values excluded, masked, or externalized?",
+        "Are environment overrides and defaults clearly documented?",
+        "Is `.env.example` synchronized with runtime-required variables?"
+      ]
+    },
+    "toml": {
+      "prompts": [
+        "Is syntax valid and structure consistent with expected schema?",
+        "Are required keys present with safe and typed values?",
+        "Are sensitive values excluded, masked, or externalized?",
+        "Are environment overrides and defaults clearly documented?",
+        "Are sections and key naming consistent with tool expectations?"
+      ]
+    },
+    "ini": {
+      "prompts": [
+        "Is syntax valid and structure consistent with expected schema?",
+        "Are required keys present with safe and typed values?",
+        "Are sensitive values excluded, masked, or externalized?",
+        "Are environment overrides and defaults clearly documented?",
+        "Are duplicate keys/section overrides intentional and documented?"
+      ]
+    },
+    "dockerfile": {
+      "prompts": [
+        "Is syntax valid and structure consistent with expected schema?",
+        "Are required keys present with safe and typed values?",
+        "Are sensitive values excluded, masked, or externalized?",
+        "Are environment overrides and defaults clearly documented?",
+        "Are base image pinning, user permissions, and layer caching optimized?",
+        "Are build secrets and runtime secrets separated correctly?"
+      ],
+      "automatedChecks": [
+        "docker build -f {file} ."
+      ]
+    },
+    "kubernetes": {
+      "prompts": [
+        "Is syntax valid and structure consistent with expected schema?",
+        "Are required keys present with safe and typed values?",
+        "Are sensitive values excluded, masked, or externalized?",
+        "Are environment overrides and defaults clearly documented?",
+        "Are resource requests/limits and liveness/readiness probes set appropriately?",
+        "Are RBAC, service accounts, and network policies least-privilege aligned?"
+      ]
+    },
+    "github-actions": {
+      "prompts": [
+        "Is syntax valid and structure consistent with expected schema?",
+        "Are required keys present with safe and typed values?",
+        "Are sensitive values excluded, masked, or externalized?",
+        "Are environment overrides and defaults clearly documented?",
+        "Are workflow triggers scoped correctly to avoid accidental runs?",
+        "Are permissions minimized and secrets referenced safely?"
+      ]
+    },
+    "terraform": {
+      "prompts": [
+        "Is syntax valid and structure consistent with expected schema?",
+        "Are required keys present with safe and typed values?",
+        "Are sensitive values excluded, masked, or externalized?",
+        "Are environment overrides and defaults clearly documented?",
+        "Are provider/version constraints explicit and state backends safe?"
+      ],
+      "automatedChecks": [
+        "terraform fmt -check",
+        "terraform validate"
+      ]
+    },
+    "ansible": {
+      "prompts": [
+        "Is syntax valid and structure consistent with expected schema?",
+        "Are required keys present with safe and typed values?",
+        "Are sensitive values excluded, masked, or externalized?",
+        "Are environment overrides and defaults clearly documented?",
+        "Are inventories variable precedence and vault secret usage explicit?"
+      ],
+      "automatedChecks": [
+        "ansible-lint"
+      ]
+    },
+    "nginx": {
+      "prompts": [
+        "Is syntax valid and structure consistent with expected schema?",
+        "Are required keys present with safe and typed values?",
+        "Are sensitive values excluded, masked, or externalized?",
+        "Are environment overrides and defaults clearly documented?",
+        "Are TLS/cipher settings current and upstream timeout policies safe?"
+      ]
+    },
+    "package-json": {
+      "prompts": [
+        "Is syntax valid and structure consistent with expected schema?",
+        "Are required keys present with safe and typed values?",
+        "Are sensitive values excluded, masked, or externalized?",
+        "Are environment overrides and defaults clearly documented?",
+        "Are scripts deterministic and dependency ranges aligned to release policy?"
+      ]
+    },
+    "tsconfig": {
+      "prompts": [
+        "Is syntax valid and structure consistent with expected schema?",
+        "Are required keys present with safe and typed values?",
+        "Are sensitive values excluded, masked, or externalized?",
+        "Are environment overrides and defaults clearly documented?",
+        "Are strictness, module target, and path mappings intentional and documented?"
+      ]
+    },
+    "general": {
+      "prompts": [
+        "Is syntax valid and structure consistent with expected schema?",
+        "Are required keys present with safe and typed values?",
+        "Are sensitive values excluded, masked, or externalized?",
+        "Are environment overrides and defaults clearly documented?"
+      ]
+    }
+  },
+  "tests": {
+    "unit": {
+      "prompts": [
+        "Do tests cover expected behavior, edge cases, and error paths?",
+        "Are assertions precise and tied to public contract behavior?",
+        "Are tests deterministic with isolated setup/teardown?",
+        "Are over-mocking and implementation-coupled assertions avoided?"
+      ],
+      "automatedChecks": [
+        "npm test -- --run"
+      ]
+    },
+    "integration": {
+      "prompts": [
+        "Do tests verify actual component boundaries and integration contracts?",
+        "Are external dependencies stubbed realistically and failure paths covered?",
+        "Is cleanup idempotent across repeated runs?",
+        "Are timeout and retry semantics explicitly validated?"
+      ],
+      "automatedChecks": [
+        "npm test -- --run"
+      ]
+    },
+    "e2e": {
+      "prompts": [
+        "Do tests model user-critical flows across the full stack?",
+        "Are flaky timing assumptions removed via explicit waits or polling contracts?",
+        "Are artifact logs/screenshots captured for debugging failures?"
+      ],
+      "automatedChecks": [
+        "npm test -- --run"
+      ]
+    },
+    "performance": {
+      "prompts": [
+        "Are performance regressions measured against a baseline budget?",
+        "Are percentile metrics (p50/p95/p99) captured and analyzed?",
+        "Are warm-up and cache effects controlled in benchmark runs?"
+      ]
+    },
+    "contract": {
+      "prompts": [
+        "Are provider/consumer schemas versioned and compatibility-checked?",
+        "Are backward-incompatible changes detected early?",
+        "Are representative payload samples included?"
+      ]
+    },
+    "smoke": {
+      "prompts": [
+        "Do tests quickly validate deploy viability for critical endpoints/features?",
+        "Are failures actionable with clear signal and minimal noise?"
+      ]
+    },
+    "regression": {
+      "prompts": [
+        "Is each historical bug encoded as a non-flaky regression test?",
+        "Are test names linked to issue IDs or incident references?"
+      ]
+    },
+    "mutation": {
+      "prompts": [
+        "Do mutation tests ensure assertions fail when logic is altered?",
+        "Are weak assertions identified and strengthened?"
+      ]
+    },
+    "load": {
+      "prompts": [
+        "Are steady-state and spike load scenarios both covered?",
+        "Are saturation, queue growth, and failure thresholds tracked?"
+      ]
+    },
+    "general": {
+      "prompts": [
+        "Are tests meaningful, deterministic, and aligned to user-visible behavior?",
+        "Do tests provide actionable failures for fast debugging?"
+      ]
+    }
+  },
+  "database": {
+    "migration": {
+      "prompts": [
+        "Is migration reversible and data-preserving under rollback?",
+        "Are lock duration and backfill strategy safe for production traffic?",
+        "Are indexes and constraints aligned with query patterns?",
+        "Are deployment order and compatibility windows documented?"
+      ]
+    },
+    "schema": {
+      "prompts": [
+        "Are key types and constraints consistent across relationships?",
+        "Is normalization balanced with read-path performance needs?",
+        "Are audit/timestamp fields and soft-delete semantics intentional?",
+        "Are naming and ownership conventions consistent?"
+      ]
+    },
+    "query": {
+      "prompts": [
+        "Are high-cost queries indexed and bounded with explicit limits?",
+        "Are execution plans reviewed for hot paths?",
+        "Are transaction scopes minimal to reduce contention?"
+      ]
+    },
+    "indexes": {
+      "prompts": [
+        "Do index definitions reflect real filter/sort access patterns?",
+        "Are write amplification and storage overhead tradeoffs documented?",
+        "Are redundant or overlapping indexes removed?"
+      ]
+    },
+    "seed": {
+      "prompts": [
+        "Are seed scripts deterministic and environment-safe?",
+        "Are fixture datasets representative but minimal?",
+        "Are PII/sensitive fixtures avoided in shared environments?"
+      ]
+    },
+    "backup": {
+      "prompts": [
+        "Are backup cadence and retention aligned with RPO/RTO targets?",
+        "Are restore tests performed and documented regularly?",
+        "Are encryption and access controls enforced for backup artifacts?"
+      ]
+    },
+    "general": {
+      "prompts": [
+        "Are schema, migration, and query decisions safe for growth and operability?",
+        "Are rollback and incident-recovery paths proven?"
+      ]
+    }
+  },
+  "security": {
+    "general": {
+      "prompts": [
+        "Are all untrusted inputs validated, sanitized, and bounded?",
+        "Are authorization checks enforced at each sensitive boundary?",
+        "Are secrets never logged, hard-coded, or exposed in artifacts?",
+        "Are abuse controls (rate limiting, throttling, lockouts) in place?"
+      ]
+    },
+    "api": {
+      "prompts": [
+        "Are endpoint auth and permission checks applied consistently?",
+        "Are injection/XSS/CSRF/CORS risks mitigated for each route?",
+        "Do errors avoid leaking stack traces or internal topology?",
+        "Are request body sizes and timeout guards configured?"
+      ]
+    },
+    "auth": {
+      "prompts": [
+        "Are token/session lifetimes, rotation, and revocation policies defined?",
+        "Is MFA enforced where risk profile requires it?",
+        "Are password and credential recovery flows abuse-resistant?"
+      ]
+    },
+    "secrets": {
+      "prompts": [
+        "Are secrets sourced from managed stores instead of source code?",
+        "Are key rotation and compromise response procedures documented?",
+        "Are secret scopes least-privilege and time-bounded where possible?"
+      ]
+    },
+    "dependency": {
+      "prompts": [
+        "Are dependencies scanned for known vulnerabilities?",
+        "Are transitive dependency risks monitored and patched quickly?",
+        "Are pinning and provenance policies defined for critical packages?"
+      ]
+    },
+    "network": {
+      "prompts": [
+        "Is traffic encrypted in transit with modern TLS defaults?",
+        "Are network boundaries segmented with least-privilege policies?",
+        "Are inbound/outbound rules explicit and audited?"
+      ]
+    },
+    "compliance": {
+      "prompts": [
+        "Are data classification and retention controls aligned to policy?",
+        "Are audit logs immutable, searchable, and access-controlled?",
+        "Are privacy/security obligations reflected in implementation details?"
+      ]
+    }
+  },
+  "performance": {
+    "general": {
+      "prompts": [
+        "Are hot paths measured with profiling data instead of assumptions?",
+        "Are batching/caching opportunities used without sacrificing correctness?",
+        "Are workloads paginated, streamed, or chunked safely?",
+        "Are SLO budgets and failure thresholds clearly defined?"
+      ]
+    },
+    "frontend": {
+      "prompts": [
+        "Are bundle size, hydration cost, and render depth controlled?",
+        "Are expensive re-renders and layout thrashing minimized?",
+        "Are lazy loading and asset optimization configured appropriately?",
+        "Are Core Web Vitals regressions measured and tracked?"
+      ]
+    },
+    "backend": {
+      "prompts": [
+        "Are synchronous bottlenecks removed from request hot paths?",
+        "Are expensive calls cached, deduplicated, or parallelized safely?",
+        "Are queueing/backpressure mechanisms present for burst traffic?"
+      ]
+    },
+    "database": {
+      "prompts": [
+        "Are query plans and index usage optimized for p95 traffic?",
+        "Are connection pooling and transaction lifetimes tuned for load?",
+        "Are high-cardinality scans and N+1 patterns eliminated?"
+      ]
+    },
+    "caching": {
+      "prompts": [
+        "Are cache keys stable and invalidation semantics explicit?",
+        "Are cache stampede protections and TTL strategies implemented?",
+        "Are stale data risks understood and acceptable per use case?"
+      ]
+    },
+    "queueing": {
+      "prompts": [
+        "Are queues sized with retry, dead-letter, and backoff policies?",
+        "Are consumer idempotency and ordering assumptions explicit?",
+        "Are throughput and lag metrics monitored with alerts?"
+      ]
+    }
+  }
+}

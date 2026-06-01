@@ -1,0 +1,66 @@
+{
+  "name": "@vladddev/mcp-agent-orchestrator",
+  "version": "0.1.0",
+  "description": "Model Context Protocol server for coordinating multi-agent workflows with token optimization and state management",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "agent-orchestra": "./dist/cli.js"
+  },
+  "files": [
+    "dist/",
+    "templates/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsc && node scripts/copy-dashboard.mjs",
+    "watch": "tsc --watch",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest --watch",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "agent-orchestration",
+    "multi-agent",
+    "ai-coordination",
+    "token-optimization",
+    "claude",
+    "gemini",
+    "workflow"
+  ],
+  "author": "Vlad Durdeu",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.2",
+    "commander": "^14.0.1",
+    "express": "^5.1.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^22.10.2",
+    "@typescript-eslint/eslint-plugin": "^8.18.1",
+    "@typescript-eslint/parser": "^8.18.1",
+    "@vitest/coverage-v8": "^2.1.9",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vladddev/mcp-agent-orchestrator.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

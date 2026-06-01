@@ -1,0 +1,47 @@
+export interface ClassificationRule {
+  regex: string;
+  weight: number;
+  suggestedTemplate?: string;
+}
+
+export interface ClassificationRules {
+  workflowTriggers: { patterns: ClassificationRule[] };
+  simpleQuestions: { patterns: ClassificationRule[] };
+  complexTasks: { patterns: ClassificationRule[] };
+}
+
+export const CLASSIFICATION_RULES: ClassificationRules = {
+  workflowTriggers: {
+    patterns: [
+      {
+        regex: "implement|build|create|add\\s+feature|fix\\s+all|optimize|refactor",
+        weight: 0.9,
+        suggestedTemplate: "user-standard-workflow",
+      },
+      {
+        regex: "audit|analy[sz]e|review.*from.*perspective",
+        weight: 0.95,
+        suggestedTemplate: "audit-workflow",
+      },
+      {
+        regex: "sprint|multiple\\s+tasks|series\\s+of|workflow|standard\\s+process|usual\\s+flow",
+        weight: 1,
+        suggestedTemplate: "user-standard-workflow",
+      },
+    ],
+  },
+  simpleQuestions: {
+    patterns: [
+      { regex: "what\\s+is|what\\s+are|explain|tell\\s+me\\s+about", weight: 0.95 },
+      { regex: "how\\s+does|how\\s+to|why|when\\s+should|which\\s+one|show\\s+me", weight: 0.9 },
+    ],
+  },
+  complexTasks: {
+    patterns: [
+      {
+        regex: "write\\s+a\\s+function|create\\s+a\\s+script|update|modify|debug|troubleshoot",
+        weight: 0.72,
+      },
+    ],
+  },
+};

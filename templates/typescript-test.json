@@ -1,0 +1,66 @@
+{
+  "name": "typescript-test",
+  "description": "Create and validate TypeScript unit and integration tests for a target feature",
+  "inputs": [
+    {
+      "name": "targetFiles",
+      "type": "array",
+      "required": true,
+      "description": "Source files to test"
+    },
+    {
+      "name": "testFramework",
+      "type": "string",
+      "required": false,
+      "default": "vitest",
+      "description": "Testing framework to use"
+    },
+    {
+      "name": "coverageTarget",
+      "type": "number",
+      "required": false,
+      "default": 80,
+      "description": "Minimum coverage threshold"
+    }
+  ],
+  "executionSteps": [
+    "Read target source files and existing tests",
+    "Identify critical behaviors and failure modes",
+    "Implement happy-path and edge-case tests",
+    "Run test suite and fix failing assertions",
+    "Report coverage and gaps"
+  ],
+  "expectedOutputs": [
+    {
+      "name": "test_files",
+      "description": "Created or updated test files",
+      "type": "array"
+    },
+    {
+      "name": "test_results",
+      "description": "Test run summary and status",
+      "type": "object"
+    },
+    {
+      "name": "coverage_summary",
+      "description": "Coverage numbers and threshold result",
+      "type": "object"
+    }
+  ],
+  "successCriteria": [
+    "Tests pass in local environment",
+    "Coverage target is met or gap is documented",
+    "Regression-prone cases are explicitly covered"
+  ],
+  "estimatedTokens": {
+    "planning": 150,
+    "execution": 900,
+    "validation": 250,
+    "reporting": 200
+  },
+  "metadata": {
+    "category": "testing",
+    "tags": ["typescript", "test", "vitest"],
+    "version": "1.0.0"
+  }
+}

@@ -1,0 +1,261 @@
+import { describe, expect, it, vi } from "vitest";
+
+import { DEFAULT_CONFIG } from "../../src/config/types.js";
+import type { AgentExecutionResult, AgentRunner } from "../../src/execution/types.js";
+import { StateManager } from "../../src/state/state-manager.js";
+import { createOrchestratorServices } from "../../src/tools/registry.js";
+import { delegateTaskTool } from "../../src/tools/delegate-task.js";
+
+function seedTask(stateManager: StateManager, id: string): void {
+  stateManager.createTask({
+    id,
+    task: "Seed task",
+    executor: "gemini",
+    template: "typescript-feature",
+    context: {},
+    inputs: {},
+    executionSteps: ["step 1"],
+    expectedOutputs: [{ name: "out", description: "desc" }],
+    successCriteria: ["done"],
+    metadata: {
+      created: new Date().toISOString(),
+    },
+  });
+}
+
+function mockResult(
+  agent: "claude" | "gemini" | "codex",
+  status: AgentExecutionResult["status"],
+  overrides: Partial<AgentExecutionResult> = {}
+): AgentExecutionResult {
+  const now = new Date().toISOString();
+  return {
+    agent,
+    status,
+    exitCode: status === "completed" ? 0 : 1,
+    signal: null,
+    startedAt: now,
+    endedAt: now,
+    durationMs: 25,
+    stdout: "",
+    stderr: "",
+    ...overrides,
+  };
+}
+
+function createMockRunner(results: AgentExecutionResult[]): AgentRunner {
+  let index = 0;
+  return {
+    run: vi.fn(async () => {
+      const current = results[Math.min(index, results.length - 1)];
+      index += 1;
+      return current;
+    }),
+  };
+}
+
+describe("delegateTaskTool", () => {
+  it("delegates task with default priority", async () => {
+    const services = createOrchestratorServices("templates");
+    const stateManager = services.stateManager;
+    seedTask(stateManager, "task-123");
+    const tool = delegateTaskTool({ stateManager, roleEnforcer: services.roleEnforcer });
+    const input = tool.schema.parse({
+      taskId: "task-123",
+      executor: "gemini",
+    });
+    const result = await tool.handler(input);
+
+    expect(result.delegationId).toMatch(/^delegation-/);
+    expect(result.priority).toBe("normal");
+    expect(result.status).toBe("delegated");
+    expect(result.executionMode).toBe("handoff");
+    expect(result.formattedTask).toContain("**Task:**");
+    expect(stateManager.getTask("task-123")?.status).toBe("executing");
+  });
+
+  it("includes optional notes in message", async () => {
+    const services = createOrchestratorServices("templates");
+    const stateManager = services.stateManager;
+    seedTask(stateManager, "task-456");
+    const tool = delegateTaskTool({ stateManager, roleEnforcer: services.roleEnforcer });
+    const input = tool.schema.parse({
+      taskId: "task-456",
+      executor: "gemini",
+      notes: "run full QA checks",
+    });
+    const result = await tool.handler(input);
+
+    expect(result.message).toContain("Notes: run full QA checks");
+  });
+
+  it("fails on executor mismatch", async () => {
+    const services = createOrchestratorServices("templates");
+    const stateManager = services.stateManager;
+    seedTask(stateManager, "task-789");
+    const tool = delegateTaskTool({ stateManager, roleEnforcer: services.roleEnforcer });
+    const input = tool.schema.parse({
+      taskId: "task-789",
+      executor: "codex",
+    });
+
+    await expect(tool.handler(input)).rejects.toThrow("Task executor mismatch");
+  });
+
+  it("attaches and updates workflow current task when workflow id is provided", async () => {
+    const services = createOrchestratorServices("templates");
+    const stateManager = services.stateManager;
+    const workflow = stateManager.createWorkflow("wf-delegate");
+    seedTask(stateManager, "task-900");
+    const tool = delegateTaskTool({ stateManager, roleEnforcer: services.roleEnforcer });
+
+    await tool.handler(
+      tool.schema.parse({
+        taskId: "task-900",
+        executor: "gemini",
+        workflowId: workflow.id,
+      })
+    );
+
+    const updatedWorkflow = stateManager.getWorkflow(workflow.id);
+    expect(updatedWorkflow?.status).toBe("in-progress");
+    expect(updatedWorkflow?.currentTask).toBe("task-900");
+  });
+
+  it("fails for missing task", async () => {
+    const services = createOrchestratorServices("templates");
+    const tool = delegateTaskTool({
+      stateManager: services.stateManager,
+      roleEnforcer: services.roleEnforcer,
+    });
+
+    await expect(
+      tool.handler(
+        tool.schema.parse({
+          taskId: "missing-task",
+          executor: "gemini",
+        })
+      )
+    ).rejects.toThrow("Task not found");
+  });
+
+  it("executes subprocess mode and stores normalized report", async () => {
+    const services = createOrchestratorServices("templates");
+    seedTask(services.stateManager, "task-subprocess-ok");
+    const runner = createMockRunner([
+      mockResult("gemini", "completed", {
+        stdout: JSON.stringify({
+          summary: "Implemented and tested.",
+          outputs: ["src/feature.ts"],
+          issues: [],
+          recommendations: ["merge"],
+          metrics: { tokensUsed: 42, testsPassed: 5, testsTotal: 5, buildSuccess: true },
+        }),
+      }),
+    ]);
+    const tool = delegateTaskTool({
+      stateManager: services.stateManager,
+      roleEnforcer: services.roleEnforcer,
+      delegationRuntime: {
+        ...DEFAULT_CONFIG.delegationRuntime,
+        enabled: true,
+        fallbackOnFailure: false,
+      },
+      agentRunner: runner,
+    });
+
+    const result = await tool.handler(
+      tool.schema.parse({
+        taskId: "task-subprocess-ok",
+        executor: "gemini",
+        executionMode: "subprocess",
+      })
+    );
+
+    const task = services.stateManager.getTask("task-subprocess-ok");
+    expect(result.status).toBe("completed");
+    expect(result.executionMode).toBe("subprocess");
+    expect(result.reportSummary).toBe("Implemented and tested.");
+    expect(task?.status).toBe("completed");
+    expect(task?.report?.summary).toBe("Implemented and tested.");
+    expect(task?.tokenUsage?.total).toBe(42);
+    expect(task?.executionHistory.length).toBe(1);
+  });
+
+  it("falls back to codex when primary executor fails", async () => {
+    const services = createOrchestratorServices("templates");
+    seedTask(services.stateManager, "task-subprocess-fallback");
+    const runner = createMockRunner([
+      mockResult("gemini", "failed", {
+        exitCode: 1,
+        stderr: "gemini failed",
+      }),
+      mockResult("codex", "completed", {
+        stdout: '{"summary":"Recovered on fallback","outputs":[],"issues":[],"recommendations":[],"metrics":{}}',
+      }),
+    ]);
+    const tool = delegateTaskTool({
+      stateManager: services.stateManager,
+      roleEnforcer: services.roleEnforcer,
+      delegationRuntime: {
+        ...DEFAULT_CONFIG.delegationRuntime,
+        enabled: true,
+        fallbackOnFailure: true,
+      },
+      agentRunner: runner,
+    });
+
+    const result = await tool.handler(
+      tool.schema.parse({
+        taskId: "task-subprocess-fallback",
+        executor: "gemini",
+        executionMode: "subprocess",
+      })
+    );
+
+    const task = services.stateManager.getTask("task-subprocess-fallback");
+    expect(result.status).toBe("completed");
+    expect(result.executor).toBe("codex");
+    expect(result.attemptedExecutors).toEqual(["gemini", "codex"]);
+    expect(task?.executionHistory.length).toBe(2);
+    expect(task?.execution?.agent).toBe("codex");
+  });
+
+  it("marks task failed when all subprocess attempts fail", async () => {
+    const services = createOrchestratorServices("templates");
+    seedTask(services.stateManager, "task-subprocess-fail");
+    const runner = createMockRunner([
+      mockResult("gemini", "timed_out", {
+        error: "Process timed out.",
+      }),
+      mockResult("codex", "failed", {
+        exitCode: 1,
+        stderr: "fallback failed",
+      }),
+    ]);
+    const tool = delegateTaskTool({
+      stateManager: services.stateManager,
+      roleEnforcer: services.roleEnforcer,
+      delegationRuntime: {
+        ...DEFAULT_CONFIG.delegationRuntime,
+        enabled: true,
+        fallbackOnFailure: true,
+      },
+      agentRunner: runner,
+    });
+
+    const result = await tool.handler(
+      tool.schema.parse({
+        taskId: "task-subprocess-fail",
+        executor: "gemini",
+        executionMode: "subprocess",
+      })
+    );
+
+    const task = services.stateManager.getTask("task-subprocess-fail");
+    expect(result.status).toBe("failed");
+    expect(task?.status).toBe("failed");
+    expect(task?.report?.summary).toContain("failed");
+    expect(task?.executionHistory.length).toBe(2);
+  });
+});

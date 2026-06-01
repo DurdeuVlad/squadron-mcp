@@ -1,0 +1,42 @@
+{
+  "security": {
+    "additionalPrompts": [
+      "Have OWASP-class vulnerabilities been evaluated explicitly?",
+      "Are secrets and tokens handled safely in storage/logs?",
+      "Is authorization enforced at all critical boundaries?"
+    ],
+    "severity": "critical"
+  },
+  "performance": {
+    "additionalPrompts": [
+      "Is algorithmic complexity acceptable at target scale?",
+      "Can latency-critical paths reduce I/O round trips?",
+      "Are throughput bottlenecks observable and measurable?"
+    ],
+    "severity": "high"
+  },
+  "accessibility": {
+    "additionalPrompts": [
+      "Are interactive paths keyboard and assistive-tech friendly?",
+      "Is semantic structure and labeling sufficient for screen readers?",
+      "Is contrast and readability adequate for accessibility standards?"
+    ],
+    "severity": "medium"
+  },
+  "maintainability": {
+    "additionalPrompts": [
+      "Is structure understandable for future maintainers?",
+      "Are responsibilities separated with low coupling?",
+      "Is technical debt visible and documented where deferred?"
+    ],
+    "severity": "medium"
+  },
+  "cost": {
+    "additionalPrompts": [
+      "Are resource/API usage patterns cost-conscious?",
+      "Can caching or batching reduce spend?",
+      "Are provisioning assumptions right-sized for expected load?"
+    ],
+    "severity": "high"
+  }
+}

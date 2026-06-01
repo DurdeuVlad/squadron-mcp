@@ -1,0 +1,31 @@
+# State Directory
+
+This directory stores persistent state when using file-based storage.
+
+## Structure
+
+```
+state/
+├── tasks/          # Individual task state files
+├── workflows/      # Workflow state files
+└── .gitkeep        # Keep directory in git
+```
+
+## Storage Modes
+
+- **memory** (default) - State exists only in memory, lost on restart
+- **file** - State persists to JSON files in this directory
+- **sqlite** - State persists to SQLite database
+
+Configure storage mode in `orchestrator-config.json`:
+
+```json
+{
+  "stateStorage": "file"
+}
+```
+
+## Gitignore
+
+All state files are gitignored by default to prevent committing runtime data.
+Only this `.gitkeep` file is tracked in git.content">

@@ -1,0 +1,60 @@
+{
+  "name": "documentation",
+  "description": "Create or update technical documentation for implemented features and workflows",
+  "inputs": [
+    {
+      "name": "scope",
+      "type": "string",
+      "required": true,
+      "description": "Documentation scope and objective"
+    },
+    {
+      "name": "targetDocs",
+      "type": "array",
+      "required": true,
+      "description": "Documentation files to modify"
+    },
+    {
+      "name": "includeExamples",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Whether runnable examples should be included"
+    }
+  ],
+  "executionSteps": [
+    "Read existing docs and identify outdated sections",
+    "Gather implementation details from code and tests",
+    "Write concise, actionable updates",
+    "Add setup and verification examples",
+    "Cross-check links and command accuracy"
+  ],
+  "expectedOutputs": [
+    {
+      "name": "updated_docs",
+      "description": "List of updated documentation files",
+      "type": "array"
+    },
+    {
+      "name": "usage_examples",
+      "description": "Examples showing how to use the documented feature",
+      "type": "array"
+    }
+  ],
+  "successCriteria": [
+    "Documentation accurately reflects current behavior",
+    "Commands and paths are runnable",
+    "Examples are clear and minimal"
+  ],
+  "estimatedTokens": {
+    "planning": 120,
+    "execution": 500,
+    "validation": 150,
+    "reporting": 150
+  },
+  "metadata": {
+    "category": "documentation",
+    "tags": ["docs", "examples", "onboarding"],
+    "version": "1.0.0"
+  }
+}

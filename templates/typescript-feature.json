@@ -1,0 +1,86 @@
+{
+  "name": "typescript-feature",
+  "description": "Implement a TypeScript feature following project patterns",
+  "inputs": [
+    {
+      "name": "feature",
+      "type": "string",
+      "required": true,
+      "description": "Feature description and requirements"
+    },
+    {
+      "name": "files",
+      "type": "array",
+      "required": true,
+      "description": "List of files to create or modify"
+    },
+    {
+      "name": "dependencies",
+      "type": "array",
+      "required": false,
+      "default": [],
+      "description": "Any new dependencies needed (npm packages)"
+    },
+    {
+      "name": "testRequired",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Whether tests are required"
+    }
+  ],
+  "executionSteps": [
+    "Read existing code files to understand patterns",
+    "Read project's tsconfig.json and style guidelines",
+    "Design implementation approach following project patterns",
+    "Implement feature with proper TypeScript types",
+    "Add error handling and validation",
+    "Write tests (if testRequired is true)",
+    "Run TypeScript compiler to check for errors",
+    "Run tests to verify functionality",
+    "Run linter and fix any issues",
+    "Generate implementation report"
+  ],
+  "expectedOutputs": [
+    {
+      "name": "implemented_files",
+      "description": "List of files created or modified",
+      "type": "array"
+    },
+    {
+      "name": "test_results",
+      "description": "Test results (if tests written)",
+      "type": "object"
+    },
+    {
+      "name": "build_status",
+      "description": "TypeScript compilation status",
+      "type": "boolean"
+    },
+    {
+      "name": "code_excerpts",
+      "description": "Key implementation excerpts (20-30 lines)",
+      "type": "object"
+    }
+  ],
+  "successCriteria": [
+    "Feature implemented following project patterns",
+    "TypeScript compiles without errors",
+    "All tests pass (if testRequired is true)",
+    "Linting passes with no errors",
+    "Code includes proper error handling",
+    "Types are well-defined (no 'any' unless justified)"
+  ],
+  "estimatedTokens": {
+    "planning": 200,
+    "execution": 1500,
+    "validation": 300,
+    "reporting": 400
+  },
+  "metadata": {
+    "category": "development",
+    "tags": ["typescript", "feature", "implementation"],
+    "version": "1.0.0",
+    "author": "mcp-agent-orchestrator"
+  }
+}

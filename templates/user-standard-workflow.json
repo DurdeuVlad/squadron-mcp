@@ -1,0 +1,247 @@
+{
+  "name": "user-standard-workflow",
+  "description": "User's complete workflow: requirements → debate → approval → sprint plan → detailed tasks → execution → QA",
+  "version": "1.0.0",
+  "yoloMode": true,
+  "autoApprove": true,
+  "workflow": [
+    {
+      "step": "requirements-definition",
+      "description": "Define requirements for what to build (x from y perspective)",
+      "agent": "planner",
+      "agentFallback": ["claude", "codex"],
+      "tool": "create_task_spec",
+      "inputs": {
+        "goal": "{userGoal}",
+        "perspective": "{perspective}",
+        "auditMode": "{isAudit}"
+      },
+      "autoInjectContext": [
+        "coordination-rules",
+        "folder-conventions",
+        "code-style"
+      ],
+      "outputs": ["requirements-doc"],
+      "estimatedTokens": 200
+    },
+    {
+      "step": "check-requirements-complete",
+      "description": "Verify requirements are correct and complete",
+      "agent": "planner",
+      "agentFallback": ["claude", "codex"],
+      "tool": "review_output",
+      "inputs": {
+        "targetStep": "requirements-definition",
+        "criteria": ["completeness", "clarity", "feasibility"]
+      },
+      "outputs": ["requirements-validation"],
+      "estimatedTokens": 150
+    },
+    {
+      "step": "internal-debate",
+      "description": "Debate pros/cons, surface issues, validate approach",
+      "agent": "planner",
+      "agentFallback": ["claude", "codex"],
+      "tool": "debate_approach",
+      "inputs": {
+        "requirements": "{requirements-doc}",
+        "perspectives": ["implementation", "testing", "maintenance", "performance"]
+      },
+      "outputs": ["debate-summary", "issues-found", "recommendations"],
+      "estimatedTokens": 300
+    },
+    {
+      "step": "user-approval",
+      "description": "User reviews and approves (or requests modifications)",
+      "agent": "user",
+      "yoloMode": true,
+      "autoApprove": true,
+      "condition": "yoloMode ? auto-approve : wait-for-input",
+      "onReject": "restart-from-step-1",
+      "estimatedTokens": 0
+    },
+    {
+      "step": "research-and-sprint-plan",
+      "description": "Research official docs, web search, create detailed sprint plan with code examples",
+      "agent": "planner",
+      "agentFallback": ["claude", "codex"],
+      "tool": "create_task_spec",
+      "inputs": {
+        "template": "sprint-plan",
+        "requirements": "{requirements-doc}",
+        "taskCount": "{taskCount}",
+        "research": {
+          "enabled": true,
+          "sources": ["official-docs", "web-search", "existing-code"],
+          "includeCodeExamples": true
+        }
+      },
+      "autoInjectContext": [
+        "sprint-methodology",
+        "task-template-structure",
+        "quality-standards"
+      ],
+      "outputs": ["sprint-plan", "research-summary", "code-examples"],
+      "estimatedTokens": 500
+    },
+    {
+      "step": "create-detailed-tasks",
+      "description": "Break sprint into detailed tasks with inputs, steps, outputs, success criteria",
+      "agent": "planner",
+      "agentFallback": ["claude", "codex"],
+      "tool": "create_task_spec",
+      "inputs": {
+        "sprintPlan": "{sprint-plan}",
+        "taskTemplate": "detailed-task",
+        "includeCodeExamples": true
+      },
+      "autoInjectContext": [
+        "task-template",
+        "testing-requirements",
+        "qa-checklist"
+      ],
+      "outputs": ["task-list"],
+      "estimatedTokens": 400
+    },
+    {
+      "step": "check-sprint-complete",
+      "description": "Verify sprint plan is correct and complete before execution",
+      "agent": "planner",
+      "agentFallback": ["claude", "codex"],
+      "tool": "review_output",
+      "inputs": {
+        "targetStep": "create-detailed-tasks",
+        "criteria": [
+          "all-tasks-detailed",
+          "code-examples-included",
+          "success-criteria-defined",
+          "dependencies-mapped"
+        ]
+      },
+      "outputs": ["sprint-validation"],
+      "estimatedTokens": 200
+    },
+    {
+      "step": "execute-tasks-sequentially",
+      "description": "Hand off each task to executor AI for highest quality execution",
+      "agent": "executor",
+      "agentFallback": ["gemini", "codex"],
+      "tool": "delegate_task",
+      "forEach": "task in {task-list}",
+      "sequential": true,
+      "inputs": {
+        "taskId": "{task.id}",
+        "executorAgent": "gemini",
+        "quality": "highest"
+      },
+      "autoInjectContext": [
+        "execution-protocol",
+        "quality-checklist",
+        "folder-conventions",
+        "code-style",
+        "testing-requirements"
+      ],
+      "autoQA": {
+        "enabled": true,
+        "runAt": "each-step",
+        "checks": ["build", "tests", "lint", "coverage"]
+      },
+      "autoFix": {
+        "enabled": true,
+        "maxAttempts": 3,
+        "strategy": "analyze-and-retry"
+      },
+      "outputs": ["task-results"],
+      "estimatedTokens": 800
+    },
+    {
+      "step": "verify-task-completion",
+      "description": "Check if each task is correct and complete, fix all issues",
+      "agent": "executor",
+      "agentFallback": ["gemini", "codex"],
+      "tool": "validate_completion",
+      "forEach": "task in {task-results}",
+      "inputs": {
+        "taskId": "{task.id}",
+        "validationCriteria": [
+          "success-criteria-met",
+          "qa-checks-passed",
+          "no-regressions",
+          "documentation-updated"
+        ]
+      },
+      "autoFix": {
+        "enabled": true,
+        "onIssueFound": "auto-fix-and-revalidate"
+      },
+      "outputs": ["validation-results"],
+      "estimatedTokens": 300
+    },
+    {
+      "step": "check-sprint-complete-final",
+      "description": "Verify entire sprint is correct and complete",
+      "agent": "planner",
+      "agentFallback": ["claude", "codex"],
+      "tool": "track_workflow",
+      "inputs": {
+        "workflowId": "{sprintId}",
+        "action": "verify-completion",
+        "criteria": [
+          "all-tasks-complete",
+          "all-qa-passed",
+          "no-blocking-issues",
+          "ready-for-final-qa"
+        ]
+      },
+      "outputs": ["sprint-completion-status"],
+      "estimatedTokens": 200
+    },
+    {
+      "step": "final-qa-confirmation",
+      "description": "Run comprehensive QA and confirm sprint completion",
+      "agent": "executor",
+      "agentFallback": ["gemini", "codex"],
+      "tool": "run_qa_suite",
+      "inputs": {
+        "sprintId": "{sprintId}",
+        "qaType": "comprehensive",
+        "runAutomatically": true
+      },
+      "qaChecks": [
+        "unit-tests",
+        "integration-tests",
+        "smoke-tests",
+        "build-verification",
+        "lint-checks",
+        "coverage-requirements",
+        "documentation-complete"
+      ],
+      "outputs": ["qa-report", "sprint-complete"],
+      "estimatedTokens": 300
+    }
+  ],
+  "metadata": {
+    "totalEstimatedTokens": 3550,
+    "averageExecutionTime": "varies by sprint size",
+    "successRate": "target 95%+",
+    "autoApproval": true,
+    "creditManagement": {
+      "trackUsage": true,
+      "autoFallback": true,
+      "gracefulDegradation": true
+    }
+  },
+  "errorHandling": {
+    "onUserReject": "restart-from-requirements",
+    "onTaskFailure": "auto-fix-with-fallback-agent",
+    "onCreditExhausted": "switch-to-fallback-agent",
+    "maxRetries": 3
+  },
+  "notes": [
+    "This is the user's complete standard workflow",
+    "QA runs automatically at each step (no manual intervention)",
+    "YOLO mode: auto-approves all gates unless explicitly overridden",
+    "Credit tracking: automatically switches agents on exhaustion",
+    "All context auto-injected (AGENTS.md, GEMINI.md, conventions, etc.)"
+  ]
+}

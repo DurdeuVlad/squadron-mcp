@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+*.tsbuildinfo
+
+# Runtime artifacts
+_runtime/
+*.log
+logs/
+temp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# State files
+state/*.json
+!state/.gitkeep
+
+# Test coverage
+coverage/
+
+# Lock files (keep yarn.lock or package-lock.json based on preference)
+# Uncomment one:
+# package-lock.json
+# yarn.lock

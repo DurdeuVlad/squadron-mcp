@@ -1,0 +1,46 @@
+{
+  "workflowTriggers": [
+    {
+      "pattern": "implement|build|create.*feature|fix all|optimize|refactor",
+      "template": "user-standard-workflow",
+      "confidence": 0.9
+    },
+    {
+      "pattern": "audit|analy[sz]e|review.*from.*perspective",
+      "template": "audit-workflow",
+      "confidence": 0.95
+    },
+    {
+      "pattern": "run.*workflow|standard process|usual flow|sprint",
+      "template": "user-standard-workflow",
+      "confidence": 1
+    }
+  ],
+  "simpleQuestions": [
+    "what is",
+    "what are",
+    "how does",
+    "explain",
+    "why",
+    "when should",
+    "show me"
+  ],
+  "contextRules": {
+    "sprints/": {
+      "suggestedTemplate": "continue-sprint",
+      "confidenceBoost": 0.15
+    },
+    "tests/": {
+      "suggestedTemplate": "write-tests",
+      "confidenceBoost": 0.1
+    },
+    "docs/": {
+      "suggestedTemplate": "update-docs",
+      "confidenceBoost": 0.1
+    }
+  },
+  "thresholds": {
+    "minConfidence": 0.8,
+    "yoloConfidence": 0.95
+  }
+}

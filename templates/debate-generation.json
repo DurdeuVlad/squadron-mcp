@@ -1,0 +1,61 @@
+{
+  "name": "debate-generation",
+  "description": "Generate structured debate content with balanced arguments and quality checks",
+  "inputs": [
+    {
+      "name": "topic",
+      "type": "string",
+      "required": true,
+      "description": "Debate topic"
+    },
+    {
+      "name": "audience",
+      "type": "string",
+      "required": false,
+      "default": "general",
+      "description": "Target audience for tone and complexity"
+    },
+    {
+      "name": "targetWordCount",
+      "type": "number",
+      "required": false,
+      "default": 1000,
+      "description": "Target total word count"
+    }
+  ],
+  "executionSteps": [
+    "Define debate framing and resolution statement",
+    "Draft balanced pro and con arguments",
+    "Add rebuttals and closing statements",
+    "Run fairness, clarity, and length checks",
+    "Package output with metadata"
+  ],
+  "expectedOutputs": [
+    {
+      "name": "debate_markdown",
+      "description": "Final debate content in markdown format",
+      "type": "string"
+    },
+    {
+      "name": "quality_metrics",
+      "description": "Balance and validation metrics",
+      "type": "object"
+    }
+  ],
+  "successCriteria": [
+    "Both sides are represented fairly",
+    "Output meets target length range",
+    "Quality checks pass without critical issues"
+  ],
+  "estimatedTokens": {
+    "planning": 180,
+    "execution": 1200,
+    "validation": 300,
+    "reporting": 220
+  },
+  "metadata": {
+    "category": "content",
+    "tags": ["debate", "generation", "quality-check"],
+    "version": "1.0.0"
+  }
+}

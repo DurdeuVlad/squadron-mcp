@@ -1,0 +1,109 @@
+{
+  "id": "c362cc9c-0cf8-4ee4-9fdd-e9a062f18ee8",
+  "spec": {
+    "id": "c362cc9c-0cf8-4ee4-9fdd-e9a062f18ee8",
+    "task": "Gemini subprocess delegation smoke test #2",
+    "executor": "gemini",
+    "template": "documentation",
+    "context": {},
+    "inputs": {
+      "scope": "Verify codex-to-gemini subprocess delegation",
+      "targetDocs": [
+        "docs/getting-started.md"
+      ],
+      "includeExamples": true
+    },
+    "executionSteps": [
+      "Read existing docs and identify outdated sections",
+      "Gather implementation details from code and tests",
+      "Write concise, actionable updates",
+      "Add setup and verification examples",
+      "Cross-check links and command accuracy"
+    ],
+    "expectedOutputs": [
+      {
+        "name": "updated_docs",
+        "description": "List of updated documentation files",
+        "type": "array"
+      },
+      {
+        "name": "usage_examples",
+        "description": "Examples showing how to use the documented feature",
+        "type": "array"
+      }
+    ],
+    "successCriteria": [
+      "Documentation accurately reflects current behavior",
+      "Commands and paths are runnable",
+      "Examples are clear and minimal"
+    ],
+    "metadata": {
+      "created": "2026-02-13T16:02:12.441Z",
+      "estimatedTokens": 920
+    }
+  },
+  "executor": "gemini",
+  "status": "failed",
+  "startTime": "2026-02-13T16:02:14.814Z",
+  "endTime": "2026-02-13T16:02:14.817Z",
+  "report": {
+    "summary": "Executor subprocess failed for task Gemini subprocess delegation smoke test #2.",
+    "outputs": [],
+    "issues": [
+      "spawn EINVAL"
+    ],
+    "recommendations": [
+      "Inspect stderr/stdout and retry delegation with adjusted prompt or executor."
+    ],
+    "metrics": {
+      "durationSeconds": 0
+    },
+    "rawOutput": "",
+    "stderr": "",
+    "executor": "codex",
+    "collectedAt": "2026-02-13T16:02:14.818Z"
+  },
+  "execution": {
+    "status": "failed",
+    "agent": "codex",
+    "attempt": 2,
+    "fallbackFrom": "gemini",
+    "startedAt": "2026-02-13T16:02:14.817Z",
+    "endedAt": "2026-02-13T16:02:14.817Z",
+    "durationMs": 0,
+    "exitCode": null,
+    "signal": null,
+    "stdout": "",
+    "stderr": "",
+    "error": "spawn EINVAL"
+  },
+  "executionHistory": [
+    {
+      "status": "failed",
+      "agent": "gemini",
+      "attempt": 1,
+      "startedAt": "2026-02-13T16:02:14.815Z",
+      "endedAt": "2026-02-13T16:02:14.816Z",
+      "durationMs": 1,
+      "exitCode": null,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": "spawn EINVAL"
+    },
+    {
+      "status": "failed",
+      "agent": "codex",
+      "attempt": 2,
+      "fallbackFrom": "gemini",
+      "startedAt": "2026-02-13T16:02:14.817Z",
+      "endedAt": "2026-02-13T16:02:14.817Z",
+      "durationMs": 0,
+      "exitCode": null,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": "spawn EINVAL"
+    }
+  ]
+}

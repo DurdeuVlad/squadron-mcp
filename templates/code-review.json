@@ -1,0 +1,73 @@
+{
+  "name": "code-review",
+  "description": "Review code for quality, bugs, and best practices",
+  "inputs": [
+    {
+      "name": "filePath",
+      "type": "file",
+      "required": true,
+      "description": "Path to code file to review"
+    },
+    {
+      "name": "criteria",
+      "type": "array",
+      "required": false,
+      "default": ["quality", "bugs", "style", "performance"],
+      "description": "Review criteria to evaluate"
+    },
+    {
+      "name": "checkOfficialDocs",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Verify usage follows official documentation"
+    }
+  ],
+  "executionSteps": [
+    "Read the code file completely",
+    "Understand the code's purpose and context",
+    "Analyze code structure and patterns",
+    "Check for potential bugs and edge cases",
+    "Evaluate code quality and maintainability",
+    "Review against style guidelines",
+    "Assess performance implications",
+    "Check official documentation for best practices (if enabled)",
+    "Generate structured report with findings"
+  ],
+  "expectedOutputs": [
+    {
+      "name": "review_report",
+      "description": "Structured code review with findings categorized by severity",
+      "type": "object"
+    },
+    {
+      "name": "recommendations",
+      "description": "List of actionable recommendations for improvement",
+      "type": "array"
+    },
+    {
+      "name": "code_excerpts",
+      "description": "Relevant code excerpts showing issues or exemplary patterns",
+      "type": "object"
+    }
+  ],
+  "successCriteria": [
+    "All specified criteria evaluated",
+    "Issues identified with clear severity levels (critical, major, minor)",
+    "Actionable recommendations provided for each issue",
+    "Code excerpts included to illustrate findings",
+    "Official documentation references included (if applicable)"
+  ],
+  "estimatedTokens": {
+    "planning": 100,
+    "execution": 1000,
+    "validation": 200,
+    "reporting": 300
+  },
+  "metadata": {
+    "category": "code-quality",
+    "tags": ["review", "quality", "bugs", "style"],
+    "version": "1.0.0",
+    "author": "mcp-agent-orchestrator"
+  }
+}

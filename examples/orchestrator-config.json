@@ -1,0 +1,37 @@
+{
+  "agents": {
+    "claude": {
+      "role": "planner",
+      "capabilities": ["planning", "review", "strategy", "orchestration"],
+      "tokenBudget": 150000,
+      "costPerToken": 0.000015
+    },
+    "gemini": {
+      "role": "executor",
+      "capabilities": ["execution", "code-reading", "validation", "reporting"],
+      "tokenBudget": 1200000,
+      "costPerToken": 0.0000025
+    },
+    "codex": {
+      "role": "reviewer",
+      "capabilities": ["planning", "execution", "review", "validation"],
+      "tokenBudget": 500000,
+      "costPerToken": 0.00002
+    }
+  },
+  "roleBoundaries": {
+    "enforce": true,
+    "rules": [
+      "planner may not read code files >200 lines",
+      "executor may not make architectural decisions"
+    ],
+    "maxPlannerFileLines": 200
+  },
+  "tokenOptimization": {
+    "enabled": true,
+    "savingsTarget": 0.6,
+    "reportSavings": true,
+    "alertThreshold": 800
+  },
+  "stateStorage": "memory"
+}

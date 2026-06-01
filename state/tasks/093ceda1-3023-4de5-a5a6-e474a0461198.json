@@ -1,0 +1,110 @@
+{
+  "id": "093ceda1-3023-4de5-a5a6-e474a0461198",
+  "spec": {
+    "id": "093ceda1-3023-4de5-a5a6-e474a0461198",
+    "task": "Return exactly: OK_FROM_GEMINI",
+    "executor": "gemini",
+    "template": "typescript-feature",
+    "context": {},
+    "inputs": {
+      "feature": "Return exactly: OK_FROM_GEMINI",
+      "files": [],
+      "dependencies": [],
+      "testRequired": true,
+      "instruction": "Return exactly: OK_FROM_GEMINI",
+      "expected_output": "OK_FROM_GEMINI",
+      "output_constraints": {
+        "exact_match": true,
+        "no_extra_text": true
+      }
+    },
+    "executionSteps": [
+      "Read existing code files to understand patterns",
+      "Read project's tsconfig.json and style guidelines",
+      "Design implementation approach following project patterns",
+      "Implement feature with proper TypeScript types",
+      "Add error handling and validation",
+      "Write tests (if testRequired is true)",
+      "Run TypeScript compiler to check for errors",
+      "Run tests to verify functionality",
+      "Run linter and fix any issues",
+      "Generate implementation report"
+    ],
+    "expectedOutputs": [
+      {
+        "name": "implemented_files",
+        "description": "List of files created or modified",
+        "type": "array"
+      },
+      {
+        "name": "test_results",
+        "description": "Test results (if tests written)",
+        "type": "object"
+      },
+      {
+        "name": "build_status",
+        "description": "TypeScript compilation status",
+        "type": "boolean"
+      },
+      {
+        "name": "code_excerpts",
+        "description": "Key implementation excerpts (20-30 lines)",
+        "type": "object"
+      }
+    ],
+    "successCriteria": [
+      "Feature implemented following project patterns",
+      "TypeScript compiles without errors",
+      "All tests pass (if testRequired is true)",
+      "Linting passes with no errors",
+      "Code includes proper error handling",
+      "Types are well-defined (no 'any' unless justified)"
+    ],
+    "metadata": {
+      "created": "2026-02-13T16:12:06.379Z",
+      "estimatedTokens": 2400
+    }
+  },
+  "executor": "gemini",
+  "status": "completed",
+  "startTime": "2026-02-13T16:12:09.021Z",
+  "endTime": "2026-02-13T16:13:21.309Z",
+  "report": {
+    "summary": "Task Return exactly: OK_FROM_GEMINI completed by gemini.",
+    "outputs": [],
+    "issues": [],
+    "recommendations": [],
+    "metrics": {},
+    "parser": "json",
+    "rawOutput": "{\n  \"session_id\": \"00b0fdd4-7b97-4105-acf4-54e1e75bf297\",\n  \"response\": \"{\\n  \\\"summary\\\": \\\"OK_FROM_GEMINI\\\",\\n  \\\"outputs\\\": [\\\"OK_FROM_GEMINI\\\"],\\n  \\\"issues\\\": [],\\n  \\\"recommendations\\\": [],\\n  \\\"metrics\\\": {\\n    \\\"tokensUsed\\\": 0,\\n    \\\"durationSeconds\\\": 0,\\n    \\\"testsPassed\\\": 1,\\n    \\\"testsTotal\\\": 1,\\n    \\\"buildSuccess\\\": true\\n  }\\n}\",\n  \"stats\": {\n    \"models\": {\n      \"gemini-2.5-flash-lite\": {\n        \"api\": {\n          \"totalRequests\": 1,\n          \"totalErrors\": 0,\n          \"totalLatencyMs\": 2261\n        },\n        \"tokens\": {\n          \"input\": 3368,\n          \"prompt\": 3368,\n          \"candidates\": 64,\n          \"total\": 3791,\n          \"cached\": 0,\n          \"thoughts\": 359,\n          \"tool\": 0\n        }\n      },\n      \"gemini-3-flash-preview\": {\n        \"api\": {\n          \"totalRequests\": 11,\n          \"totalErrors\": 3,\n          \"totalLatencyMs\": 59437\n        },\n        \"tokens\": {\n          \"input\": 50763,\n          \"prompt\": 178111,\n          \"candidates\": 624,\n          \"total\": 184221,\n          \"cached\": 127348,\n          \"thoughts\": 5486,\n          \"tool\": 0\n        }\n      }\n    },\n    \"tools\": {\n      \"totalCalls\": 10,\n      \"totalSuccess\": 10,\n      \"totalFail\": 0,\n      \"totalDurationMs\": 30,\n      \"totalDecisions\": {\n        \"accept\": 10,\n        \"reject\": 0,\n        \"modify\": 0,\n        \"auto_accept\": 0\n      },\n      \"byName\": {\n        \"read_file\": {\n          \"count\": 8,\n          \"success\": 8,\n          \"fail\": 0,\n          \"durationMs\": 25,\n          \"decisions\": {\n            \"accept\": 8,\n            \"reject\": 0,\n            \"modify\": 0,\n            \"auto_accept\": 0\n          }\n        },\n        \"list_directory\": {\n          \"count\": 1,\n          \"success\": 1,\n          \"fail\": 0,\n          \"durationMs\": 2,\n          \"decisions\": {\n            \"accept\": 1,\n            \"reject\": 0,\n            \"modify\": 0,\n            \"auto_accept\": 0\n          }\n        },\n        \"glob\": {\n          \"count\": 1,\n          \"success\": 1,\n          \"fail\": 0,\n          \"durationMs\": 3,\n          \"decisions\": {\n            \"accept\": 1,\n            \"reject\": 0,\n            \"modify\": 0,\n            \"auto_accept\": 0\n          }\n        }\n      }\n    },\n    \"files\": {\n      \"totalLinesAdded\": 0,\n      \"totalLinesRemoved\": 0\n    }\n  }\n}",
+    "stderr": "Loaded cached credentials.\nSession cleanup disabled: Either maxAge or maxCount must be specified\nHook registry initialized with 0 hook entries\nAttempt 1 failed: You have exhausted your capacity on this model. Your quota will reset after 0s.. Retrying after 468.64585600000004ms...\nAttempt 1 failed: You have exhausted your capacity on this model. Your quota will reset after 0s.. Retrying after 486.04134999999997ms...\nAttempt 1 failed: You have exhausted your capacity on this model. Your quota will reset after 0s.. Retrying after 682.1550159999999ms...\n",
+    "executor": "gemini",
+    "collectedAt": "2026-02-13T16:13:21.308Z"
+  },
+  "execution": {
+    "status": "completed",
+    "agent": "gemini",
+    "attempt": 1,
+    "startedAt": "2026-02-13T16:12:09.023Z",
+    "endedAt": "2026-02-13T16:13:21.307Z",
+    "durationMs": 72284,
+    "exitCode": 0,
+    "signal": null,
+    "stdout": "{\n  \"session_id\": \"00b0fdd4-7b97-4105-acf4-54e1e75bf297\",\n  \"response\": \"{\\n  \\\"summary\\\": \\\"OK_FROM_GEMINI\\\",\\n  \\\"outputs\\\": [\\\"OK_FROM_GEMINI\\\"],\\n  \\\"issues\\\": [],\\n  \\\"recommendations\\\": [],\\n  \\\"metrics\\\": {\\n    \\\"tokensUsed\\\": 0,\\n    \\\"durationSeconds\\\": 0,\\n    \\\"testsPassed\\\": 1,\\n    \\\"testsTotal\\\": 1,\\n    \\\"buildSuccess\\\": true\\n  }\\n}\",\n  \"stats\": {\n    \"models\": {\n      \"gemini-2.5-flash-lite\": {\n        \"api\": {\n          \"totalRequests\": 1,\n          \"totalErrors\": 0,\n          \"totalLatencyMs\": 2261\n        },\n        \"tokens\": {\n          \"input\": 3368,\n          \"prompt\": 3368,\n          \"candidates\": 64,\n          \"total\": 3791,\n          \"cached\": 0,\n          \"thoughts\": 359,\n          \"tool\": 0\n        }\n      },\n      \"gemini-3-flash-preview\": {\n        \"api\": {\n          \"totalRequests\": 11,\n          \"totalErrors\": 3,\n          \"totalLatencyMs\": 59437\n        },\n        \"tokens\": {\n          \"input\": 50763,\n          \"prompt\": 178111,\n          \"candidates\": 624,\n          \"total\": 184221,\n          \"cached\": 127348,\n          \"thoughts\": 5486,\n          \"tool\": 0\n        }\n      }\n    },\n    \"tools\": {\n      \"totalCalls\": 10,\n      \"totalSuccess\": 10,\n      \"totalFail\": 0,\n      \"totalDurationMs\": 30,\n      \"totalDecisions\": {\n        \"accept\": 10,\n        \"reject\": 0,\n        \"modify\": 0,\n        \"auto_accept\": 0\n      },\n      \"byName\": {\n        \"read_file\": {\n          \"count\": 8,\n          \"success\": 8,\n          \"fail\": 0,\n          \"durationMs\": 25,\n          \"decisions\": {\n            \"accept\": 8,\n            \"reject\": 0,\n            \"modify\": 0,\n            \"auto_accept\": 0\n          }\n        },\n        \"list_directory\": {\n          \"count\": 1,\n          \"success\": 1,\n          \"fail\": 0,\n          \"durationMs\": 2,\n          \"decisions\": {\n            \"accept\": 1,\n            \"reject\": 0,\n            \"modify\": 0,\n            \"auto_accept\": 0\n          }\n        },\n        \"glob\": {\n          \"count\": 1,\n          \"success\": 1,\n          \"fail\": 0,\n          \"durationMs\": 3,\n          \"decisions\": {\n            \"accept\": 1,\n            \"reject\": 0,\n            \"modify\": 0,\n            \"auto_accept\": 0\n          }\n        }\n      }\n    },\n    \"files\": {\n      \"totalLinesAdded\": 0,\n      \"totalLinesRemoved\": 0\n    }\n  }\n}",
+    "stderr": "Loaded cached credentials.\nSession cleanup disabled: Either maxAge or maxCount must be specified\nHook registry initialized with 0 hook entries\nAttempt 1 failed: You have exhausted your capacity on this model. Your quota will reset after 0s.. Retrying after 468.64585600000004ms...\nAttempt 1 failed: You have exhausted your capacity on this model. Your quota will reset after 0s.. Retrying after 486.04134999999997ms...\nAttempt 1 failed: You have exhausted your capacity on this model. Your quota will reset after 0s.. Retrying after 682.1550159999999ms...\n"
+  },
+  "executionHistory": [
+    {
+      "status": "completed",
+      "agent": "gemini",
+      "attempt": 1,
+      "startedAt": "2026-02-13T16:12:09.023Z",
+      "endedAt": "2026-02-13T16:13:21.307Z",
+      "durationMs": 72284,
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "{\n  \"session_id\": \"00b0fdd4-7b97-4105-acf4-54e1e75bf297\",\n  \"response\": \"{\\n  \\\"summary\\\": \\\"OK_FROM_GEMINI\\\",\\n  \\\"outputs\\\": [\\\"OK_FROM_GEMINI\\\"],\\n  \\\"issues\\\": [],\\n  \\\"recommendations\\\": [],\\n  \\\"metrics\\\": {\\n    \\\"tokensUsed\\\": 0,\\n    \\\"durationSeconds\\\": 0,\\n    \\\"testsPassed\\\": 1,\\n    \\\"testsTotal\\\": 1,\\n    \\\"buildSuccess\\\": true\\n  }\\n}\",\n  \"stats\": {\n    \"models\": {\n      \"gemini-2.5-flash-lite\": {\n        \"api\": {\n          \"totalRequests\": 1,\n          \"totalErrors\": 0,\n          \"totalLatencyMs\": 2261\n        },\n        \"tokens\": {\n          \"input\": 3368,\n          \"prompt\": 3368,\n          \"candidates\": 64,\n          \"total\": 3791,\n          \"cached\": 0,\n          \"thoughts\": 359,\n          \"tool\": 0\n        }\n      },\n      \"gemini-3-flash-preview\": {\n        \"api\": {\n          \"totalRequests\": 11,\n          \"totalErrors\": 3,\n          \"totalLatencyMs\": 59437\n        },\n        \"tokens\": {\n          \"input\": 50763,\n          \"prompt\": 178111,\n          \"candidates\": 624,\n          \"total\": 184221,\n          \"cached\": 127348,\n          \"thoughts\": 5486,\n          \"tool\": 0\n        }\n      }\n    },\n    \"tools\": {\n      \"totalCalls\": 10,\n      \"totalSuccess\": 10,\n      \"totalFail\": 0,\n      \"totalDurationMs\": 30,\n      \"totalDecisions\": {\n        \"accept\": 10,\n        \"reject\": 0,\n        \"modify\": 0,\n        \"auto_accept\": 0\n      },\n      \"byName\": {\n        \"read_file\": {\n          \"count\": 8,\n          \"success\": 8,\n          \"fail\": 0,\n          \"durationMs\": 25,\n          \"decisions\": {\n            \"accept\": 8,\n            \"reject\": 0,\n            \"modify\": 0,\n            \"auto_accept\": 0\n          }\n        },\n        \"list_directory\": {\n          \"count\": 1,\n          \"success\": 1,\n          \"fail\": 0,\n          \"durationMs\": 2,\n          \"decisions\": {\n            \"accept\": 1,\n            \"reject\": 0,\n            \"modify\": 0,\n            \"auto_accept\": 0\n          }\n        },\n        \"glob\": {\n          \"count\": 1,\n          \"success\": 1,\n          \"fail\": 0,\n          \"durationMs\": 3,\n          \"decisions\": {\n            \"accept\": 1,\n            \"reject\": 0,\n            \"modify\": 0,\n            \"auto_accept\": 0\n          }\n        }\n      }\n    },\n    \"files\": {\n      \"totalLinesAdded\": 0,\n      \"totalLinesRemoved\": 0\n    }\n  }\n}",
+      "stderr": "Loaded cached credentials.\nSession cleanup disabled: Either maxAge or maxCount must be specified\nHook registry initialized with 0 hook entries\nAttempt 1 failed: You have exhausted your capacity on this model. Your quota will reset after 0s.. Retrying after 468.64585600000004ms...\nAttempt 1 failed: You have exhausted your capacity on this model. Your quota will reset after 0s.. Retrying after 486.04134999999997ms...\nAttempt 1 failed: You have exhausted your capacity on this model. Your quota will reset after 0s.. Retrying after 682.1550159999999ms...\n"
+    }
+  ]
+}
