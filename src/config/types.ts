@@ -159,6 +159,7 @@ export const OrchestratorConfigSchema = z
     tokenOptimization: TokenOptimizationSchema.optional(),
     delegationRuntime: DelegationRuntimeSchema.optional(),
     stateStorage: z.enum(["memory", "file", "sqlite"]).default("memory"),
+    plugins: z.array(z.string()).default([]),
   })
   .passthrough();
 
@@ -248,4 +249,5 @@ export const DEFAULT_CONFIG: OrchestratorConfig = {
     },
   },
   stateStorage: "memory",
+  plugins: [],
 };

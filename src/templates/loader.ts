@@ -82,6 +82,10 @@ export class TemplateRegistry {
     return this.templates.has(name);
   }
 
+  register(name: string, template: Template): void {
+    this.templates.set(name, template);
+  }
+
   list(): Template[] {
     return [...this.templates.values()];
   }
