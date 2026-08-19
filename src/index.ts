@@ -1,9 +1,16 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import {
+  CallToolRequestSchema,
+  GetPromptRequestSchema,
+  ListPromptsRequestSchema,
+  ListToolsRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
 import { pathToFileURL } from "node:url";
 
 import { log } from "./utils/logger.js";
+import { createDefaultPromptRegistry } from "./prompts/index.js";
+import type { PromptRegistry } from "./prompts/registry.js";
 import {
   createDefaultToolRegistry,
   createOrchestratorServices,
@@ -15,14 +22,17 @@ import {
 export interface CreateServerResult {
   server: Server;
   registry: ToolRegistry;
+  promptRegistry: PromptRegistry;
   services: OrchestratorServices;
 }
 
 export function createServer(
   registry?: ToolRegistry,
-  services: OrchestratorServices = createOrchestratorServices()
+  services: OrchestratorServices = createOrchestratorServices(),
+  promptRegistry?: PromptRegistry
 ): CreateServerResult {
   const resolvedRegistry = registry ?? createDefaultToolRegistry(services);
+  const resolvedPromptRegistry = promptRegistry ?? createDefaultPromptRegistry(services);
   const server = new Server(
     {
       name: "squadron",
@@ -31,6 +41,7 @@ export function createServer(
     {
       capabilities: {
         tools: {},
+        prompts: {},
       },
     }
   );
@@ -43,7 +54,15 @@ export function createServer(
     return resolvedRegistry.invoke(request.params.name, request.params.arguments);
   });
 
-  return { server, registry: resolvedRegistry, services };
+  server.setRequestHandler(ListPromptsRequestSchema, async () => ({
+    prompts: resolvedPromptRegistry.listPrompts(),
+  }));
+
+  server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+    return resolvedPromptRegistry.get(request.params.name, request.params.arguments);
+  });
+
+  return { server, registry: resolvedRegistry, promptRegistry: resolvedPromptRegistry, services };
 }
 
 export async function startServer(): Promise<void> {
