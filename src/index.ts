@@ -13,6 +13,7 @@ import { createDefaultPromptRegistry } from "./prompts/index.js";
 import type { PromptRegistry } from "./prompts/registry.js";
 import { applyPlugins } from "./plugins/apply.js";
 import { loadPlugins } from "./plugins/loader.js";
+import { detectAgentAuth } from "./setup/auth-detection.js";
 import {
   createDefaultToolRegistry,
   createOrchestratorServices,
@@ -70,6 +71,13 @@ export function createServer(
 export async function startServer(): Promise<void> {
   const services = await createOrchestratorServicesFromConfig();
   await services.templateRegistry.initialize();
+
+  const auth = detectAgentAuth();
+  log("info", "auth.status", {
+    claude: auth.claude.method,
+    gemini: auth.gemini.method,
+    codex: auth.codex.method,
+  });
 
   const { server, registry, promptRegistry } = createServer(undefined, services);
 

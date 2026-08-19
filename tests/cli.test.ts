@@ -58,6 +58,46 @@ describe("CLI", () => {
     expect(parsed.stateStorage).toBe("file");
   });
 
+  it("stays non-interactive when stdout is a TTY but stdin is not (piped/redirected input)", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "orchestrator-cli-init-tty-"));
+    tempDirs.push(dir);
+    const output: string[] = [];
+    const errors: string[] = [];
+    const originalCwd = process.cwd();
+    const originalStdoutIsTTY = process.stdout.isTTY;
+    const originalStdinIsTTY = process.stdin.isTTY;
+    process.chdir(dir);
+    // Simulate a TTY stdout with piped stdin - the wizard must not launch here,
+    // or it would hang waiting for input that will never come.
+    Object.defineProperty(process.stdout, "isTTY", { value: true, configurable: true });
+    Object.defineProperty(process.stdin, "isTTY", { value: false, configurable: true });
+
+    try {
+      const cli = createCli({
+        out: (message) => output.push(message),
+        err: (message) => errors.push(message),
+      });
+      await cli.parseAsync(["node", "squadron", "init"]);
+    } finally {
+      process.chdir(originalCwd);
+      Object.defineProperty(process.stdout, "isTTY", {
+        value: originalStdoutIsTTY,
+        configurable: true,
+      });
+      Object.defineProperty(process.stdin, "isTTY", {
+        value: originalStdinIsTTY,
+        configurable: true,
+      });
+    }
+
+    expect(errors).toEqual([]);
+    expect(output.some((line) => line.includes("Wrote config"))).toBe(true);
+    const parsedTtyCase = JSON.parse(
+      readFileSync(join(dir, "squadron-config.json"), "utf8")
+    ) as OrchestratorConfig;
+    expect(parsedTtyCase.stateStorage).toBe("file");
+  });
+
   it("creates a task and prints metrics for persisted state", async () => {
     const output: string[] = [];
     const errors: string[] = [];

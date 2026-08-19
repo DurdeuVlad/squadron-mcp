@@ -6,11 +6,12 @@ The package exposes `squadron` as a standalone command line interface.
 
 ## `squadron init`
 
-Initialize local config and runtime folders.
+Initialize local config and runtime folders. Interactive (shows auth-detection status, lets you confirm paths, offers to write an MCP client config snippet) when run in a terminal; pass `--yes` to skip prompts and use flags/defaults only.
 
 ```bash
-squadron init
-squadron init --force --config custom-config.json --templates-dir ./templates
+squadron init                    # interactive wizard (in a TTY)
+squadron init --yes              # non-interactive, same as pre-wizard behavior
+squadron init --force --config custom-config.json --templates-dir ./templates --yes
 ```
 
 ## `squadron task create`
