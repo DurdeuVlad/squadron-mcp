@@ -8,6 +8,10 @@ Interactive Terminal Sessions transform subprocess execution from **one-shot** (
 2.  **Visibility:** Opens a visible terminal window where you can see the AI executing tasks in real-time.
 3.  **State Persistence:** Some CLIs maintain local state or context between commands when run interactively.
 
+## Platform support
+
+Interactive sessions are implemented via `WindowsTerminalSpawner`, which shells out to `cmd.exe`/`powershell.exe` — **this is Windows-only today**. There is no POSIX/macOS terminal spawner. On macOS/Linux, setting `executionMode: "auto"` will silently fall back to one-shot subprocess execution (see [troubleshooting-subprocess.md](troubleshooting-subprocess.md)) instead of opening an interactive session; setting `executionMode: "interactive"` explicitly on a non-Windows host will fail. This is a known limitation, not a bug — a POSIX/macOS spawner is tracked as future work, not planned in the current release.
+
 ## Configuration
 
 Interactive sessions are configured within the `delegationRuntime` section of your `squadron-config.json`.
