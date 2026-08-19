@@ -1,4 +1,4 @@
-import { detectAgentAuth } from "../setup/auth-detection.js";
+import { detectAgentAuth, type AuthDetectionResult } from "../setup/auth-detection.js";
 
 export type AgentType = "claude" | "gemini" | "codex";
 export type AgentRole = "planner" | "executor" | "reviewer";
@@ -13,9 +13,12 @@ const SUBSCRIPTION_TOKEN_ENV_VAR: Record<AgentType, string> = {
 // Global CLI login takes priority (matches the documented priority order in
 // docs/QUICK_START_GLOBAL_AUTH.md), then a subscription token, then falls
 // back to "api-key" as the default assumption when neither is detected -
-// same fallback the old hardcoded behavior always used.
-function resolveAuthMethod(agent: AgentType): AuthMethod {
-  if (detectAgentAuth()[agent].method === "global-cli") {
+// same fallback the old hardcoded behavior always used. Takes an
+// already-computed detection result rather than calling detectAgentAuth()
+// itself, since that does real fs.existsSync I/O for all three agents on
+// every call - callers should detect once and resolve all three from it.
+function resolveAuthMethod(agent: AgentType, detected: AuthDetectionResult): AuthMethod {
+  if (detected[agent].method === "global-cli") {
     return "global-cli";
   }
   if (process.env[SUBSCRIPTION_TOKEN_ENV_VAR[agent]]) {
@@ -64,10 +67,12 @@ export class AgentManager {
   }
 
   private initialize(): void {
+    const detected = detectAgentAuth();
+
     this.configs.set("claude", {
       name: "claude",
       roles: ["planner", "reviewer"],
-      authMethod: resolveAuthMethod("claude"),
+      authMethod: resolveAuthMethod("claude", detected),
       fallbacks: ["codex"],
       priority: 1,
     });
@@ -75,7 +80,7 @@ export class AgentManager {
     this.configs.set("gemini", {
       name: "gemini",
       roles: ["executor"],
-      authMethod: resolveAuthMethod("gemini"),
+      authMethod: resolveAuthMethod("gemini", detected),
       fallbacks: ["codex"],
       priority: 2,
     });
@@ -83,7 +88,7 @@ export class AgentManager {
     this.configs.set("codex", {
       name: "codex",
       roles: ["planner", "executor", "reviewer"],
-      authMethod: resolveAuthMethod("codex"),
+      authMethod: resolveAuthMethod("codex", detected),
       fallbacks: [],
       priority: 3,
     });

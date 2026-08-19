@@ -103,7 +103,11 @@ export async function runInitWizard(
     message: "Write this snippet to mcp-client-config.json in the current directory?",
     initialValue: false,
   });
-  if (!isCancel(writeSnippet) && writeSnippet) {
+  if (isCancel(writeSnippet)) {
+    cancel("Setup cancelled (config and directories were already written above).");
+    return;
+  }
+  if (writeSnippet) {
     const snippetPath = resolve("mcp-client-config.json");
     writeFileSync(snippetPath, `${JSON.stringify(snippet, null, 2)}\n`, "utf8");
     context.out(`Wrote MCP client config snippet: ${snippetPath}`);

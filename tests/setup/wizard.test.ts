@@ -24,14 +24,18 @@ vi.mock("../../src/setup/auth-detection.js", () => ({
   })),
 }));
 
-import { confirm, text } from "@clack/prompts";
+import { cancel, confirm, isCancel, text } from "@clack/prompts";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { runInitWizard } from "../../src/setup/wizard.js";
+
+const CANCEL_SENTINEL = Symbol("cancel");
 
 describe("runInitWizard", () => {
   beforeEach(() => {
     vi.mocked(text).mockReset();
     vi.mocked(confirm).mockReset();
+    vi.mocked(isCancel).mockReset().mockImplementation((value) => value === CANCEL_SENTINEL);
+    vi.mocked(cancel).mockReset();
     vi.mocked(existsSync).mockReset().mockReturnValue(false);
     vi.mocked(mkdirSync).mockClear();
     vi.mocked(writeFileSync).mockClear();
@@ -94,5 +98,40 @@ describe("runInitWizard", () => {
     expect(snippetCall).toBeDefined();
     const written = JSON.parse(snippetCall![1] as string);
     expect(written).toEqual({ mcpServers: { squadron: { command: "npx", args: ["squadron-mcp"] } } });
+  });
+
+  it("bails out cleanly (no writes) when the very first prompt is cancelled", async () => {
+    vi.mocked(text).mockResolvedValueOnce(CANCEL_SENTINEL as never);
+
+    await runInitWizard(
+      { config: "squadron-config.json", templatesDir: "templates", force: false },
+      { out: () => {}, err: () => {} }
+    );
+
+    expect(writeFileSync).not.toHaveBeenCalled();
+    expect(mkdirSync).not.toHaveBeenCalled();
+    expect(cancel).toHaveBeenCalledWith("Setup cancelled.");
+  });
+
+  it("reports cancellation (not a false 'ready' outro) when the final client-config prompt is cancelled", async () => {
+    vi.mocked(text)
+      .mockResolvedValueOnce("squadron-config.json")
+      .mockResolvedValueOnce("templates");
+    vi.mocked(confirm).mockResolvedValueOnce(CANCEL_SENTINEL as never);
+
+    await runInitWizard(
+      { config: "squadron-config.json", templatesDir: "templates", force: false },
+      { out: () => {}, err: () => {} }
+    );
+
+    // Config/dirs were already written before this last prompt - only the
+    // snippet write should be skipped, and cancellation should be reported.
+    expect(writeFileSync).toHaveBeenCalledTimes(1);
+    expect(
+      vi.mocked(writeFileSync).mock.calls.some(([path]) => String(path).includes("mcp-client-config.json"))
+    ).toBe(false);
+    expect(cancel).toHaveBeenCalledWith(
+      "Setup cancelled (config and directories were already written above)."
+    );
   });
 });

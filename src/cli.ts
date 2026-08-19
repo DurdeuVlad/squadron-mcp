@@ -87,7 +87,11 @@ export function createCli(context: CliContext = defaultContext): Command {
     .option("--yes", "Skip the interactive wizard, use flags/defaults only", false)
     .action(
       async (options: { config: string; templatesDir: string; force: boolean; yes: boolean }) => {
-        const interactive = Boolean(process.stdout.isTTY) && !options.yes;
+        // Require both stdout and stdin to be a TTY - if stdin is piped/redirected
+        // (e.g. `squadron init < /dev/null`), the wizard's prompts would hang
+        // waiting for input that will never come, so fall back to non-interactive.
+        const interactive =
+          Boolean(process.stdout.isTTY) && Boolean(process.stdin.isTTY) && !options.yes;
 
         if (interactive) {
           await runInitWizard(
