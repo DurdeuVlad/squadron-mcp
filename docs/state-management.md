@@ -1,6 +1,6 @@
 # State Management
 
-Sprint 002 adds in-memory orchestration state tracking.
+Squadron tracks task/workflow state (in-memory or file-backed) via a pluggable storage adapter.
 
 ## Core Types
 

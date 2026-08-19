@@ -1,6 +1,6 @@
 # Auto-Orchestration Guide
 
-Sprint 006 adds intelligent request routing so the orchestrator can decide:
+Auto-orchestration adds intelligent request routing so the server can decide:
 
 - answer directly
 - use a single MCP tool

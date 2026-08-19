@@ -54,31 +54,35 @@ YOLO_MODE=false   # Manual approval gates
 
 ## Authentication Methods
 
-### Subscription vs. API Key
+> **Canonical reference:** [Authentication](AUTHENTICATION.md) is the source of truth for auth methods and priority - this section is a summary in the context of credit management specifically; if the two ever disagree, that doc wins.
 
-The orchestrator supports **two authentication methods** per agent:
+Squadron checks **three** authentication methods per agent, in priority order:
 
-**1. Subscription (Preferred)**
+**1. Global CLI login (highest priority)**
+- ✅ Zero configuration - detected automatically if you're already logged in to `claude`/`gemini`/`codex` on this machine
+- ✅ No separate cost tracking here (uses whatever your existing login's terms are)
+- 📝 Detected via `src/setup/auth-detection.ts`'s `detectAgentAuth()` (file-presence check, see [Global Auth Quick Start](QUICK_START_GLOBAL_AUTH.md))
+
+**2. Subscription token**
 - ✅ Higher limits (10x more tokens/day)
 - ✅ No per-token cost (flat subscription fee)
 - ✅ Better for production when project makes money
-- ✅ Enterprise-grade reliability
 - 📝 Uses: `ANTHROPIC_SUBSCRIPTION_TOKEN`, `GOOGLE_SUBSCRIPTION_TOKEN`, `OPENAI_SUBSCRIPTION_TOKEN`
 
-**2. API Key (Fallback)**
+**3. API key (fallback)**
 - ⚠️ Lower limits (standard usage tiers)
 - 💰 Pay-per-use (charged per token)
 - ✅ Good for development and testing
-- ✅ No long-term commitment
 - 📝 Uses: `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `OPENAI_API_KEY`
 
 ### Authentication Priority
 
 ```
 For each agent:
-  1. Check for subscription token → Use if present ✅
-  2. If no subscription → Check for API key → Use if present ⚠️
-  3. If neither → Agent unavailable ❌
+  1. Check for a global CLI login → Use if present 🌐
+  2. If not, check for a subscription token → Use if present ✅
+  3. If not, check for an API key → Use if present ⚠️
+  4. If none → Agent unavailable ❌
 ```
 
 ### Configuration
@@ -106,6 +110,8 @@ OPENAI_API_KEY=sk-xxx
 | Claude | 1M tokens/day | 10M tokens/day | $15/M tokens | Flat fee (free per-token) |
 | Gemini | 2M tokens/day | 20M tokens/day | $2.50/M tokens | Flat fee (free per-token) |
 | Codex | 500k tokens/day | 5M tokens/day | $20/M tokens | Flat fee (free per-token) |
+
+Global CLI login isn't in this table - it uses whatever limits/cost terms your existing `claude`/`gemini`/`codex` login already has, tracked by that CLI itself, not by Squadron.
 
 ### When to Use Each Method
 

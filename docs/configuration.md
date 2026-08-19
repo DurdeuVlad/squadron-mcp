@@ -1,6 +1,6 @@
 # Configuration
 
-Sprint 004 introduces project-level configuration via `squadron-config.json`.
+Squadron uses project-level configuration via `squadron-config.json`.
 
 ## Schema
 
@@ -75,7 +75,7 @@ Notes:
 
 ### Interactive Sessions
 
-Sprint 009 introduces persistent terminal sessions for subprocess execution. See [Interactive Sessions](interactive-sessions.md) for a full guide.
+Squadron also supports persistent terminal sessions for subprocess execution (Windows-only, see below). See [Interactive Sessions](interactive-sessions.md) for a full guide.
 
 Key settings in `delegationRuntime`:
 
