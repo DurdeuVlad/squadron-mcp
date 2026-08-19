@@ -41,3 +41,6 @@ coverage/
 # Uncomment one:
 # package-lock.json
 # yarn.lock
+
+# npm pack artifacts
+*.tgz

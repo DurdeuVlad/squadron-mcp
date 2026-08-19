@@ -58,9 +58,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/vladddev/mcp-agent-orchestrator.git"
+    "url": "https://github.com/DurdeuVlad/mcp-agent-orchestrator.git"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }
