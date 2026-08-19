@@ -211,6 +211,7 @@ export const DEFAULT_CONFIG: OrchestratorConfig = {
   },
   delegationRuntime: {
     enabled: false,
+    executionMode: "oneshot",
     defaultTimeoutMs: 120_000,
     maxOutputBytes: 131_072,
     fallbackOnFailure: true,
