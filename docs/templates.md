@@ -1,6 +1,6 @@
 # Template System
 
-Sprint 002 introduces a validated template system for reusable orchestration patterns.
+Squadron includes a validated template system for reusable orchestration patterns.
 
 ## Supported Template Shapes
 

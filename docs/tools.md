@@ -1,6 +1,6 @@
 # Tools API
 
-Sprint 003 exposes the core orchestration toolchain through MCP.
+The core orchestration toolchain, exposed through MCP.
 
 ## `create_task_spec`
 
@@ -23,7 +23,7 @@ Key behavior:
 - optionally sets workflow current task
 - returns a formatted handoff payload for executor agents
 
-Subprocess mode (Sprint 008):
+Subprocess mode:
 - when `delegationRuntime.enabled=true` (or input `executionMode="subprocess"`), runs configured external CLI subprocess for executor
 - captures stdout/stderr, exit code, duration, and fallback attempts
 - normalizes executor output into task report payload
@@ -69,3 +69,31 @@ Key behavior:
 - workflow-level report when `workflowId` is provided
 - portfolio-level report when no workflow is specified
 - recommendations based on role usage and repeated template patterns
+
+## `classify_intent`
+
+Classifies user intent to determine whether auto-orchestration should run.
+
+Key behavior:
+- takes a `userMessage` and returns a confidence-scored classification
+- used internally by `auto_orchestrate`, but callable standalone
+
+## `extract_workflow_params`
+
+Extracts structured workflow parameters from a natural language request.
+
+Key behavior:
+- takes a `userMessage` (and optionally a prior `classification`) and returns structured params (task, executor, template hints)
+- used internally by `auto_orchestrate`, but callable standalone
+
+## `detect_context`
+
+Detects workspace context signals used for auto-orchestration decisions.
+
+Key behavior:
+- takes optional `currentFile`/`currentFolder` and returns workspace context (language, project type, relevant signals)
+- used internally by `auto_orchestrate`, but callable standalone
+
+## `auto_orchestrate`
+
+Classifies intent, extracts workflow parameters, and intelligently decides whether to run a workflow - the single entry point that chains `classify_intent` → `extract_workflow_params` → `detect_context` → (if confidence is high enough) `execute_workflow` internally, including automatic QA prompt injection during execution. See [Auto-Orchestration Guide](AUTO_ORCHESTRATION.md).

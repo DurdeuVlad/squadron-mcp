@@ -1,6 +1,6 @@
 # Demo Walkthrough
 
-This walkthrough demonstrates the production-ready flow delivered in Sprint 005.
+This walkthrough demonstrates the CLI + dashboard production flow.
 
 ## 1. Build and test
 
@@ -42,4 +42,4 @@ Expected result:
 
 ## Outcome
 
-Sprint 005 deliverables are demonstrably functional via CLI, dashboard, persistence, and distribution checks.
+The CLI, dashboard, persistence, and packaging are all demonstrably functional via the checks above.

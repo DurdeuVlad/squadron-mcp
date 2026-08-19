@@ -1,6 +1,6 @@
 # Token Optimization
 
-Sprint 004 adds token tracking, savings analytics, and optimization recommendations.
+Squadron includes token tracking, savings analytics, and optimization recommendations.
 
 ## Components
 

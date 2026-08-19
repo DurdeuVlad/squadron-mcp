@@ -2,8 +2,9 @@
 
 > **Model Context Protocol server for coordinating multi-agent AI workflows**
 
+[![CI](https://github.com/DurdeuVlad/mcp-agent-orchestrator/actions/workflows/ci.yml/badge.svg)](https://github.com/DurdeuVlad/mcp-agent-orchestrator/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
 
 ## Why This Exists
@@ -182,136 +183,46 @@ npm run build
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    MCP Orchestrator Server                  │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
-│  │ Task Manager │  │ State Store  │  │Template Engine│   │
-│  └──────────────┘  └──────────────┘  └──────────────┘    │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐  │
-│  │              MCP Tools (exposed to agents)          │  │
-│  ├─────────────────────────────────────────────────────┤  │
-│  │ • create_task_spec  • delegate_task                 │  │
-│  │ • collect_report    • review_output                 │  │
-│  │ • track_workflow    • optimize_tokens               │  │
-│  └─────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-         ▲                                      ▲
-         │                                      │
-    ┌────┴────┐                            ┌───┴────┐
-    │ Claude  │                            │ Gemini │
-    │(Planner)│                            │(Executor)│
-    └─────────┘                            └────────┘
+┌───────────────────────────────────────────────────────────────┐
+│                          Squadron (MCP server)                │
+│                                                                 │
+│   Tools (11)        Prompts (4)        Plugins (local .js)    │
+│   task specs,        usage guidance     custom tools/prompts/ │
+│   delegation,        for the tools      templates, optional   │
+│   reports, review,   above                                    │
+│   tracking, ...                                               │
+│                                                                 │
+│   ┌───────────────┐   ┌───────────────┐   ┌────────────────┐  │
+│   │  Task/State    │   │   Template    │   │  Delegation    │  │
+│   │  Manager       │   │   Registry    │   │  Runtime       │  │
+│   │ (memory/file)  │   │               │   │ (spawns real   │  │
+│   │                │   │               │   │  subprocesses) │  │
+│   └───────────────┘   └───────────────┘   └────────────────┘  │
+└───────────────────────────────────────────────────────────────┘
+              ▲ MCP (stdio)              │ subprocess (optional)
+              │                          ▼
+   ┌──────────┴──────────┐    ┌────────────────────────────┐
+   │  Your MCP client      │    │  claude / gemini / codex   │
+   │  (Claude Code, etc.)  │    │  CLIs, delegated to        │
+   └────────────────────────┘    └────────────────────────────┘
 ```
 
-## MCP Tools Reference
+## MCP Tools & Prompts
 
-### `create_task_spec`
+Squadron exposes 11 tools over MCP — the core coordination loop is `create_task_spec` → `delegate_task` → `collect_report` → `review_output`, plus `track_workflow` and `optimize_tokens` for multi-task workflows, and `classify_intent`/`extract_workflow_params`/`detect_context`/`auto_orchestrate` for automatically deciding when to trigger a workflow at all. It also exposes 4 MCP Prompts that teach a connecting client when/how to use them.
 
-Generate structured task specification for executor agent.
-
-**Input:**
-```typescript
-{
-  task: string;           // High-level task description
-  executor: string;       // Target agent (e.g., "gemini")
-  template: string;       // Template name (e.g., "code-review")
-  context?: object;       // Additional context (files, constraints, etc.)
-}
-```
-
-**Output:** Task specification with ID, inputs, steps, success criteria
-
----
-
-### `delegate_task`
-
-Handoff task to executor agent with auto-formatting.
-
-**Input:**
-```typescript
-{
-  taskId: string;    // Task ID from create_task_spec
-  executor: string;  // Executor agent name
-}
-```
-
-**Output:** Delegation confirmation and executor notification
-
----
-
-### `collect_report`
-
-Gather execution results from executor agent.
-
-**Input:**
-```typescript
-{
-  taskId: string;  // Task ID to collect report for
-}
-```
-
-**Output:** Structured execution report with results, metrics, recommendations
-
----
-
-### `review_output`
-
-Trigger review workflow with quality criteria.
-
-**Input:**
-```typescript
-{
-  taskId: string;
-  criteria: string[];  // E.g., ["quality", "completeness", "style"]
-  reviewer: string;    // Reviewer agent (e.g., "claude")
-}
-```
-
-**Output:** Review summary with pass/fail and recommendations
-
----
-
-### `track_workflow`
-
-Monitor multi-step coordination progress and token usage.
-
-**Input:**
-```typescript
-{
-  workflowId: string;  // Workflow ID to track
-}
-```
-
-**Output:** Workflow state, task progress, token metrics
-
----
-
-### `optimize_tokens`
-
-Analyze coordination patterns and suggest optimizations.
-
-**Input:**
-```typescript
-{
-  workflowId?: string;  // Optional: analyze specific workflow
-  timeRange?: string;   // Optional: "last-24h", "last-week"
-}
-```
-
-**Output:** Token usage analysis, optimization recommendations, potential savings
+Full schemas and examples: **[Tools API](docs/tools.md)** · **[Prompts API](docs/prompts.md)** · **[API Reference](docs/api-reference.md)**
 
 ## Templates
 
 Templates define reusable coordination patterns. Included templates:
 
-- **code-review** - Review code for quality, bugs, performance
-- **debate-generation** - Generate AI debates with validation
-- **video-rendering** - Coordinate video generation pipelines
-- **sprint-planning** - Plan multi-task sprints with dependencies
-- **quality-check** - Run QC checks on outputs
+- **code-review** - Review code for quality, bugs, and best practices
+- **debate-generation** - Generate structured debate content with balanced arguments and quality checks
+- **documentation** - Create or update technical documentation for implemented features and workflows
+- **typescript-feature** - Implement a TypeScript feature following project patterns
+- **typescript-test** - Create and validate TypeScript unit and integration tests for a target feature
+- **user-standard-workflow** - Full requirements → debate → approval → sprint plan → tasks → execution → QA pipeline
 
 Create custom templates in `templates/` directory. See [Template Guide](docs/templates.md).
 
@@ -403,17 +314,15 @@ Claude → Reviews progress → Adjusts plan as needed
 
 ## Metrics & Observability
 
-Track coordination efficiency:
+Track coordination efficiency via the CLI or the [dashboard](docs/dashboard.md):
 
-- **Token Usage** - Per-agent, per-task, per-workflow
-- **Time Savings** - Coordination time vs. manual handoffs
-- **Quality Metrics** - Pass rates, revision rates
-- **Cost Tracking** - Token costs by agent × task type
-
-Export metrics to CSV/JSON for analysis:
+- **Token usage** - per-workflow, with totals and savings vs. a naive baseline
+- **Cost tracking** - token cost by agent, based on configured `costPerToken`
 
 ```bash
-squadron metrics export --format csv --output metrics.csv
+squadron metrics                    # aggregate metrics across all workflows
+squadron metrics --workflow <id>    # detailed report for one workflow
+squadron dashboard --port 3000      # live web view, auto-refreshing
 ```
 
 ## Development
@@ -462,13 +371,12 @@ npm run format        # Prettier
 
 ## Roadmap
 
-**Phase 1 (Sprint 1-2):** Core MCP server + basic tools  
-**Phase 2 (Sprint 3):** State management + token tracking  
-**Phase 3 (Sprint 4):** Templates + role boundaries  
-**Phase 4 (Sprint 5):** CLI + observability dashboard  
-**Phase 5 (Future):** Multi-agent (>2), parallel execution, CI/CD integration
+**Shipped:** core MCP server and 11 tools, state management + token tracking, templates + role boundaries, CLI + dashboard, real subprocess delegation (spawns `claude`/`gemini`/`codex`), MCP Prompts, a plugin system, an interactive setup wizard, CI.
 
-See [sprints/](sprints/) for detailed planning.
+**Not yet built:**
+- A POSIX/macOS terminal spawner for interactive delegation sessions (currently Windows-only — one-shot subprocess delegation works everywhere, interactive sessions don't)
+- npm-package plugin resolution (plugins currently load from local file paths only)
+- True multi-agent (>2 concurrent) and parallel task execution
 
 ## Contributing
 
@@ -478,18 +386,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 MIT © 2026 Vlad Durdeu
 
-## Related Projects
-
-This orchestrator extracts patterns from:
-- [automated-ai-debates-content-farm](https://github.com/vladddev/automated-ai-debates-content-farm) - Debate generation with Claude/Gemini
-- [night_pass_sleep_app](https://github.com/vladddev/night_pass_sleep_app) - Flutter mobile app with production-grade agent coordination
-- [desktop-ai-poc-modules](https://github.com/vladddev/desktop-ai-poc-modules) - Desktop automation monorepo
-
 ## Questions?
 
-- 📧 Email: [your-email]
 - 🐛 Issues: [GitHub Issues](https://github.com/DurdeuVlad/mcp-agent-orchestrator/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/DurdeuVlad/mcp-agent-orchestrator/discussions)
 
 ---
 
