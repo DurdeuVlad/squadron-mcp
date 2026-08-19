@@ -1,6 +1,6 @@
 {
   "name": "squadron-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Model Context Protocol server for coordinating multi-agent workflows with token optimization and state management",
   "main": "dist/index.js",
   "type": "module",
