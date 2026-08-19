@@ -183,28 +183,21 @@ npm run build
 ## Architecture
 
 ```
-┌───────────────────────────────────────────────────────────────┐
-│                          Squadron (MCP server)                │
-│                                                                 │
-│   Tools (11)        Prompts (4)        Plugins (local .js)    │
-│   task specs,        usage guidance     custom tools/prompts/ │
-│   delegation,        for the tools      templates, optional   │
-│   reports, review,   above                                    │
-│   tracking, ...                                               │
-│                                                                 │
-│   ┌───────────────┐   ┌───────────────┐   ┌────────────────┐  │
-│   │  Task/State    │   │   Template    │   │  Delegation    │  │
-│   │  Manager       │   │   Registry    │   │  Runtime       │  │
-│   │ (memory/file)  │   │               │   │ (spawns real   │  │
-│   │                │   │               │   │  subprocesses) │  │
-│   └───────────────┘   └───────────────┘   └────────────────┘  │
-└───────────────────────────────────────────────────────────────┘
-              ▲ MCP (stdio)              │ subprocess (optional)
-              │                          ▼
-   ┌──────────┴──────────┐    ┌────────────────────────────┐
-   │  Your MCP client      │    │  claude / gemini / codex   │
-   │  (Claude Code, etc.)  │    │  CLIs, delegated to        │
-   └────────────────────────┘    └────────────────────────────┘
+Your MCP client (Claude Code, etc.)
+        │
+        │  MCP over stdio
+        ▼
+Squadron
+  ├─ Tools (11)          task specs, delegation, reports, review, tracking, ...
+  ├─ Prompts (4)         usage guidance for the tools above
+  ├─ Plugins             local .js files contributing custom tools/prompts/templates (optional)
+  ├─ Task/State Manager  in-memory or file-backed
+  ├─ Template Registry   built-in + custom coordination templates
+  └─ Delegation Runtime  spawns real claude/gemini/codex subprocesses (optional)
+                              │
+                              │  subprocess (when delegationRuntime.enabled)
+                              ▼
+                        claude / gemini / codex CLIs
 ```
 
 ## MCP Tools & Prompts

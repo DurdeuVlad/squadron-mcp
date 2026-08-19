@@ -96,4 +96,4 @@ Key behavior:
 
 ## `auto_orchestrate`
 
-Classifies intent, extracts workflow parameters, and intelligently decides whether to run a workflow - the single entry point that chains `classify_intent` → `extract_workflow_params` → `detect_context` → (if confidence is high enough) `execute_workflow` internally, including automatic QA prompt injection during execution. See [Auto-Orchestration Guide](AUTO_ORCHESTRATION.md).
+Classifies intent, extracts workflow parameters, and intelligently decides whether to run a workflow - the single entry point that chains `detect_context` → `classify_intent` → `extract_workflow_params` → (if confidence is high enough) `execute_workflow` internally, including automatic QA prompt injection during execution. See [Auto-Orchestration Guide](AUTO_ORCHESTRATION.md).
