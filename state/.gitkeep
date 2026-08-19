@@ -17,7 +17,7 @@ state/
 - **file** - State persists to JSON files in this directory
 - **sqlite** - State persists to SQLite database
 
-Configure storage mode in `orchestrator-config.json`:
+Configure storage mode in `squadron-config.json`:
 
 ```json
 {

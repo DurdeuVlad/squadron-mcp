@@ -39,6 +39,28 @@ describe("createDefaultPromptRegistry", () => {
     }
   });
 
+  it("actually interpolates each declared argument's value into the built message text", async () => {
+    const registry = createDefaultPromptRegistry();
+    for (const prompt of registry.listPrompts()) {
+      const args = Object.fromEntries(
+        (prompt.arguments ?? []).map((arg) => [arg.name, `test-value-${arg.name}`])
+      );
+      const result = await registry.get(prompt.name, args);
+      const combinedText = result.messages
+        .map((message) =>
+          message.content.type === "text" ? message.content.text : ""
+        )
+        .join("\n");
+
+      for (const arg of prompt.arguments ?? []) {
+        expect(
+          combinedText,
+          `${prompt.name}: expected test-value-${arg.name} to appear in the built prompt text`
+        ).toContain(`test-value-${arg.name}`);
+      }
+    }
+  });
+
   it("plan_delegation requires taskDescription and marks constraints optional", () => {
     const registry = createDefaultPromptRegistry();
     const def = registry.listPrompts().find((p) => p.name === "plan_delegation");

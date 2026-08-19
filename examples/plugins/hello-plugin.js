@@ -5,7 +5,7 @@ import { z } from "zod";
 // own built-in tools/prompts follow. See docs/plugins.md.
 //
 // Point a config's `plugins` array at this file's path (relative to the
-// config file's location) to load it:
+// working directory the server starts in) to load it:
 //   { "plugins": ["examples/plugins/hello-plugin.js"] }
 
 const helloSchema = z.object({
