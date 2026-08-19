@@ -91,7 +91,7 @@ export function createOrchestratorServices(
 ): OrchestratorServices {
   const templateLoader = new TemplateLoader(templatesDir);
   const templateRegistry = new TemplateRegistry(templateLoader);
-  const stateStorageDir = process.env.ORCHESTRATOR_STATE_DIR ?? "state";
+  const stateStorageDir = process.env.SQUADRON_STATE_DIR ?? "state";
   if (config.stateStorage === "sqlite") {
     throw new Error(
       "stateStorage 'sqlite' is not implemented yet. Use 'memory' or 'file'."
@@ -121,7 +121,7 @@ export function createOrchestratorServices(
 
 export async function createOrchestratorServicesFromConfig(
   templatesDir = "templates",
-  configPath = "orchestrator-config.json"
+  configPath = "squadron-config.json"
 ): Promise<OrchestratorServices> {
   const configLoader = new ConfigLoader();
   const config = await configLoader.load(configPath);

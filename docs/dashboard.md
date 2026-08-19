@@ -7,7 +7,7 @@ The dashboard provides a lightweight monitoring view for workflows and token usa
 From CLI:
 
 ```bash
-agent-orchestra dashboard --port 3000
+squadron dashboard --port 3000
 ```
 
 Programmatic:

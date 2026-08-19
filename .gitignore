@@ -31,7 +31,7 @@ Thumbs.db
 .env.*.local
 
 # State files
-state/*.json
+state/**/*.json
 !state/.gitkeep
 
 # Test coverage

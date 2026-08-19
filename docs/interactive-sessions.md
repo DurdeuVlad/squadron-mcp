@@ -10,7 +10,7 @@ Interactive Terminal Sessions transform subprocess execution from **one-shot** (
 
 ## Configuration
 
-Interactive sessions are configured within the `delegationRuntime` section of your `orchestrator-config.json`.
+Interactive sessions are configured within the `delegationRuntime` section of your `squadron-config.json`.
 
 ```json
 {

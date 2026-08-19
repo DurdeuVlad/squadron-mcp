@@ -1,4 +1,4 @@
-# MCP Agent Orchestrator
+# Squadron
 
 > **Model Context Protocol server for coordinating multi-agent AI workflows**
 
@@ -20,7 +20,7 @@ If you're managing multiple AI agents (Claude for planning, Gemini for execution
 
 ## What It Does
 
-MCP Agent Orchestrator provides **structured primitives** for multi-agent coordination:
+Squadron provides **structured primitives** for multi-agent coordination:
 
 ### Important Documents
 
@@ -91,7 +91,7 @@ Total: ~150 tokens (81% reduction!)
 ### For Use in Your Projects
 
 ```bash
-npm install -g @vladddev/mcp-agent-orchestrator
+npm install -g squadron-mcp
 ```
 
 Or add to your MCP settings (`~/.config/claude/mcp.json`):
@@ -99,9 +99,9 @@ Or add to your MCP settings (`~/.config/claude/mcp.json`):
 ```json
 {
   "mcpServers": {
-    "agent-orchestrator": {
+    "squadron": {
       "command": "npx",
-      "args": ["@vladddev/mcp-agent-orchestrator"]
+      "args": ["squadron-mcp"]
     }
   }
 }
@@ -110,7 +110,7 @@ Or add to your MCP settings (`~/.config/claude/mcp.json`):
 ### For Development
 
 ```bash
-git clone https://github.com/vladddev/mcp-agent-orchestrator.git
+git clone https://github.com/DurdeuVlad/mcp-agent-orchestrator.git
 cd mcp-agent-orchestrator
 npm install
 npm run build
@@ -120,7 +120,7 @@ npm run build
 
 ### 1. Configure Your Agents
 
-Create `orchestrator-config.json` in your project root:
+Create `squadron-config.json` in your project root:
 
 ```json
 {
@@ -339,7 +339,7 @@ Create custom templates in `templates/` directory. See [Template Guide](docs/tem
 
 ### Agent Configuration
 
-Define agents, roles, and capabilities in `orchestrator-config.json`:
+Define agents, roles, and capabilities in `squadron-config.json`:
 
 ```json
 {
@@ -433,7 +433,7 @@ Track coordination efficiency:
 Export metrics to CSV/JSON for analysis:
 
 ```bash
-agent-orchestra metrics export --format csv --output metrics.csv
+squadron metrics export --format csv --output metrics.csv
 ```
 
 ## Development
@@ -505,8 +505,8 @@ This orchestrator extracts patterns from:
 ## Questions?
 
 - 📧 Email: [your-email]
-- 🐛 Issues: [GitHub Issues](https://github.com/vladddev/mcp-agent-orchestrator/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/vladddev/mcp-agent-orchestrator/discussions)
+- 🐛 Issues: [GitHub Issues](https://github.com/DurdeuVlad/mcp-agent-orchestrator/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/DurdeuVlad/mcp-agent-orchestrator/discussions)
 
 ---
 

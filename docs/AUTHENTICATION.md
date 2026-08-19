@@ -2,7 +2,7 @@
 
 ## Overview
 
-The MCP Agent Orchestrator supports **dual authentication** for maximum flexibility:
+The Squadron supports **dual authentication** for maximum flexibility:
 
 1. **Subscription-based auth** (preferred, higher limits, no per-token cost)
 2. **API key auth** (fallback, pay-per-use, good for development)

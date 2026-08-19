@@ -36,7 +36,7 @@ On startup, the server exposes these tools:
 
 ## Optional: Enable Real Subprocess Delegation
 
-Add `delegationRuntime` in `orchestrator-config.json` to make `delegate_task` execute external CLIs:
+Add `delegationRuntime` in `squadron-config.json` to make `delegate_task` execute external CLIs:
 
 ```json
 {

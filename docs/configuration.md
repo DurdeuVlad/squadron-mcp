@@ -1,6 +1,6 @@
 # Configuration
 
-Sprint 004 introduces project-level configuration via `orchestrator-config.json`.
+Sprint 004 introduces project-level configuration via `squadron-config.json`.
 
 ## Schema
 
@@ -19,7 +19,7 @@ Validation is implemented in `src/config/types.ts`.
 
 `ConfigLoader` in `src/config/loader.ts`:
 
-- tries to load `orchestrator-config.json`
+- tries to load `squadron-config.json`
 - validates with Zod
 - merges with defaults from `DEFAULT_CONFIG`
 - falls back to defaults on missing/invalid file
@@ -90,11 +90,11 @@ Key settings in `delegationRuntime`:
 ## State Storage Notes
 
 - `memory`: ephemeral process-local state
-- `file`: persisted JSON state under `state/` (or `ORCHESTRATOR_STATE_DIR`)
+- `file`: persisted JSON state under `state/` (or `SQUADRON_STATE_DIR`)
 - `sqlite`: reserved for future implementation
 
 Current behavior for `sqlite`:
 - service initialization throws an explicit error:
   `stateStorage 'sqlite' is not implemented yet. Use 'memory' or 'file'.`
 
-`agent-orchestra init` writes `stateStorage: "file"` by default to make persistence work out of the box.
+`squadron init` writes `stateStorage: "file"` by default to make persistence work out of the box.

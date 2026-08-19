@@ -25,7 +25,7 @@ export function createServer(
   const resolvedRegistry = registry ?? createDefaultToolRegistry(services);
   const server = new Server(
     {
-      name: "agent-orchestrator",
+      name: "squadron",
       version: "0.1.0",
     },
     {

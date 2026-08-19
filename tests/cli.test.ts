@@ -13,13 +13,13 @@ afterEach(() => {
   for (const dir of tempDirs.splice(0, tempDirs.length)) {
     rmSync(dir, { recursive: true, force: true });
   }
-  delete process.env.ORCHESTRATOR_STATE_DIR;
+  delete process.env.SQUADRON_STATE_DIR;
 });
 
 function makeTempProject(): { dir: string; configPath: string; templatesDir: string; stateDir: string } {
   const dir = mkdtempSync(join(tmpdir(), "orchestrator-cli-"));
   tempDirs.push(dir);
-  const configPath = join(dir, "orchestrator-config.json");
+  const configPath = join(dir, "squadron-config.json");
   const templatesDir = resolve("templates");
   const stateDir = join(dir, "state");
 
@@ -45,7 +45,7 @@ describe("CLI", () => {
         out: (message) => output.push(message),
         err: (message) => errors.push(message),
       });
-      await cli.parseAsync(["node", "agent-orchestra", "init"]);
+      await cli.parseAsync(["node", "squadron", "init"]);
     } finally {
       process.chdir(originalCwd);
     }
@@ -53,7 +53,7 @@ describe("CLI", () => {
     expect(errors).toEqual([]);
     expect(output.some((line) => line.includes("Wrote config"))).toBe(true);
     const parsed = JSON.parse(
-      readFileSync(join(dir, "orchestrator-config.json"), "utf8")
+      readFileSync(join(dir, "squadron-config.json"), "utf8")
     ) as OrchestratorConfig;
     expect(parsed.stateStorage).toBe("file");
   });
@@ -62,14 +62,14 @@ describe("CLI", () => {
     const output: string[] = [];
     const errors: string[] = [];
     const { configPath, templatesDir, stateDir } = makeTempProject();
-    process.env.ORCHESTRATOR_STATE_DIR = stateDir;
+    process.env.SQUADRON_STATE_DIR = stateDir;
 
     await createCli({
       out: (message) => output.push(message),
       err: (message) => errors.push(message),
     }).parseAsync([
       "node",
-      "agent-orchestra",
+      "squadron",
       "task",
       "create",
       "--task",
@@ -91,7 +91,7 @@ describe("CLI", () => {
       err: (message) => errors.push(message),
     }).parseAsync([
       "node",
-      "agent-orchestra",
+      "squadron",
       "metrics",
       "--config",
       configPath,
@@ -112,7 +112,7 @@ describe("CLI", () => {
     const output: string[] = [];
     const errors: string[] = [];
     const { configPath, templatesDir, stateDir } = makeTempProject();
-    process.env.ORCHESTRATOR_STATE_DIR = stateDir;
+    process.env.SQUADRON_STATE_DIR = stateDir;
 
     const services = createOrchestratorServices(templatesDir, {
       ...DEFAULT_CONFIG,
@@ -141,7 +141,7 @@ describe("CLI", () => {
     });
     await cli.parseAsync([
       "node",
-      "agent-orchestra",
+      "squadron",
       "workflow",
       "track",
       workflow.id,
