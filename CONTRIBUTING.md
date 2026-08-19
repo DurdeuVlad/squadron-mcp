@@ -1,4 +1,4 @@
-# Contributing to MCP Agent Orchestrator
+# Contributing to Squadron
 
 Thank you for your interest in contributing! This document provides guidelines for contributing to the project.
 
@@ -196,8 +196,8 @@ Maintainers will handle releases:
 
 ## Questions?
 
-- **Issues:** https://github.com/vladddev/mcp-agent-orchestrator/issues
-- **Discussions:** https://github.com/vladddev/mcp-agent-orchestrator/discussions
+- **Issues:** https://github.com/DurdeuVlad/mcp-agent-orchestrator/issues
+- **Discussions:** https://github.com/DurdeuVlad/mcp-agent-orchestrator/discussions
 - **Email:** [Your Email]
 
 ---

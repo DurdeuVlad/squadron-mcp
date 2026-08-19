@@ -8,7 +8,7 @@ import {
 async function main() {
   const services = await createOrchestratorServicesFromConfig(
     "templates",
-    "orchestrator-config.json"
+    "squadron-config.json"
   );
   await services.templateRegistry.initialize();
   const registry = createDefaultToolRegistry(services);

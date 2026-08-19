@@ -10,7 +10,7 @@ gemini      # Opens Gemini interactive prompt
 codex       # Opens Codex/OpenAI interactive prompt
 ```
 
-**Then you don't need to configure anything!** The MCP Agent Orchestrator will automatically detect your existing login sessions.
+**Then you don't need to configure anything!** Squadron will automatically detect your existing login sessions.
 
 ---
 
@@ -32,7 +32,7 @@ C:\Users\YourName\AppData\Roaming\openai\config.json
 ~/.openai/config.json
 ```
 
-The MCP Agent Orchestrator **reads these same files** - no duplication needed!
+Squadron **reads these same files** - no duplication needed!
 
 ---
 

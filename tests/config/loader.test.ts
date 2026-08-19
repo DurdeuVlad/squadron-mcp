@@ -20,7 +20,7 @@ describe("ConfigLoader", () => {
   it("loads and merges project config", async () => {
     const dir = await mkdtemp(join(tmpdir(), "orchestrator-config-"));
     tempDirs.push(dir);
-    const file = join(dir, "orchestrator-config.json");
+    const file = join(dir, "squadron-config.json");
     await writeFile(
       file,
       JSON.stringify({

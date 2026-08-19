@@ -50,7 +50,7 @@ function mergeWithDefaults(config: DeepPartial<OrchestratorConfig>): Orchestrato
 }
 
 export class ConfigLoader {
-  async load(configPath = "orchestrator-config.json"): Promise<OrchestratorConfig> {
+  async load(configPath = "squadron-config.json"): Promise<OrchestratorConfig> {
     try {
       const content = await readFile(configPath, "utf8");
       const parsed = JSON.parse(content) as unknown;

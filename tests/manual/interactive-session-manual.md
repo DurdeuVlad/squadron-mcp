@@ -7,7 +7,7 @@
 
 ## Test Scenario 1: Basic Interactive Execution
 
-1. **Configure `orchestrator-config.json`**:
+1. **Configure `squadron-config.json`**:
    ```json
    {
      "delegationRuntime": {

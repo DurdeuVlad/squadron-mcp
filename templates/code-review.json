@@ -68,6 +68,6 @@
     "category": "code-quality",
     "tags": ["review", "quality", "bugs", "style"],
     "version": "1.0.0",
-    "author": "mcp-agent-orchestrator"
+    "author": "squadron"
   }
 }

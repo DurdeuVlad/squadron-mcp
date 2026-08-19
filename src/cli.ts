@@ -75,12 +75,12 @@ async function loadServices(configPath: string, templatesDir: string): Promise<O
 export function createCli(context: CliContext = defaultContext): Command {
   const program = new Command();
 
-  program.name("agent-orchestra").description("CLI for MCP Agent Orchestrator").version("0.1.0");
+  program.name("squadron").description("CLI for Squadron").version("0.1.0");
 
   program
     .command("init")
     .description("Initialize orchestrator config and folders in current directory")
-    .option("--config <path>", "Config file path", "orchestrator-config.json")
+    .option("--config <path>", "Config file path", "squadron-config.json")
     .option("--templates-dir <path>", "Templates directory", "templates")
     .option("--force", "Overwrite existing config file", false)
     .action((options: { config: string; templatesDir: string; force: boolean }) => {
@@ -114,7 +114,7 @@ export function createCli(context: CliContext = defaultContext): Command {
     .option("--planner <planner>", "Planner agent", "claude")
     .option("--context <key=value...>", "Context key=value pairs")
     .option("--input <key=value...>", "Input key=value pairs")
-    .option("--config <path>", "Config path", "orchestrator-config.json")
+    .option("--config <path>", "Config path", "squadron-config.json")
     .option("--templates-dir <path>", "Templates directory", "templates")
     .action(
       async (options: {
@@ -155,7 +155,7 @@ export function createCli(context: CliContext = defaultContext): Command {
   workflow
     .command("track <workflowId>")
     .description("Track workflow progress")
-    .option("--config <path>", "Config path", "orchestrator-config.json")
+    .option("--config <path>", "Config path", "squadron-config.json")
     .option("--templates-dir <path>", "Templates directory", "templates")
     .action(async (workflowId: string, options: { config: string; templatesDir: string }) => {
       const services = await loadServices(options.config, options.templatesDir);
@@ -168,7 +168,7 @@ export function createCli(context: CliContext = defaultContext): Command {
     .command("metrics")
     .description("Show token usage metrics")
     .option("--workflow <workflowId>", "Specific workflow id")
-    .option("--config <path>", "Config path", "orchestrator-config.json")
+    .option("--config <path>", "Config path", "squadron-config.json")
     .option("--templates-dir <path>", "Templates directory", "templates")
     .action(async (options: { workflow?: string; config: string; templatesDir: string }) => {
       const services = await loadServices(options.config, options.templatesDir);
@@ -184,7 +184,7 @@ export function createCli(context: CliContext = defaultContext): Command {
     .command("dashboard")
     .description("Start monitoring dashboard")
     .option("--port <port>", "Dashboard port", "3000")
-    .option("--config <path>", "Config path", "orchestrator-config.json")
+    .option("--config <path>", "Config path", "squadron-config.json")
     .option("--templates-dir <path>", "Templates directory", "templates")
     .action(async (options: { port: string; config: string; templatesDir: string }) => {
       const services = await loadServices(options.config, options.templatesDir);
