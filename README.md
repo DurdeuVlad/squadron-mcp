@@ -22,31 +22,94 @@ If you're managing multiple AI agents (Claude for planning, Gemini for execution
 
 Squadron provides **structured primitives** for multi-agent coordination:
 
-### Important Documents
-
-- **[SYSTEM_CHECKUP.md](SYSTEM_CHECKUP.md)** ⭐ - **READ THIS FIRST** - Comprehensive analysis of how current system works vs. how new system will work. Confirms all features preserved + massive improvements.
-- [PROJECT_STATUS.md](PROJECT_STATUS.md) - Current status, sprint plans, and implementation roadmap
-- [CODEX_START.md](CODEX_START.md) - Onboarding guide for Codex (execution specialist)
-
 ### Quick Start
 
 ```bash
-# Install dependencies
-npm install
-
-# If you're already logged in globally (can run `claude`, `gemini`, `codex` in terminal):
-# → You're done! No configuration needed. Just run:
-npm run dev
-
-# If NOT logged in globally, configure agents:
-cp .env.example .env
-# Add your API keys to .env (see .env.example for options)
-
-# Run the server
-npm run dev
+npm install -g squadron-mcp
+squadron init
 ```
 
-**Already logged in globally?** The orchestrator auto-detects your existing CLI login sessions. See [Global Auth Quick Start](docs/QUICK_START_GLOBAL_AUTH.md).
+`squadron init` is interactive: it checks for existing `claude`/`gemini`/`codex` CLI logins (see [Authentication](docs/AUTHENTICATION.md)), writes `squadron-config.json`, creates the `templates/`/`state/` directories, and offers to write the MCP client config snippet for you. Run with `--yes` to skip the prompts and use flag/defaults only (e.g. in CI).
+
+Then add Squadron to your MCP client (e.g. `~/.config/claude/mcp.json`) using the snippet the wizard printed, or see [Installation](#installation) below.
+
+<details>
+<summary>Advanced: manual configuration (no wizard)</summary>
+
+Create `squadron-config.json` in your project root:
+
+```json
+{
+  "agents": {
+    "claude": {
+      "role": "planner",
+      "capabilities": ["planning", "editorial-review", "strategy"],
+      "tokenBudget": 100000
+    },
+    "gemini": {
+      "role": "executor",
+      "capabilities": ["code-reading", "execution", "validation"],
+      "tokenBudget": 1000000
+    }
+  },
+  "templates": {
+    "code-review": "templates/code-review.json",
+    "debate-generation": "templates/debate-generation.json"
+  }
+}
+```
+
+Create a task template, e.g. `templates/code-review.json`:
+
+```json
+{
+  "name": "code-review",
+  "description": "Review code for quality, bugs, and best practices",
+  "inputs": [
+    { "name": "filePath", "type": "string", "required": true },
+    { "name": "criteria", "type": "array", "default": ["quality", "bugs", "style"] }
+  ],
+  "executionSteps": [
+    "Read the code file",
+    "Analyze against criteria",
+    "Identify issues and improvements",
+    "Generate structured report"
+  ],
+  "successCriteria": [
+    "All criteria evaluated",
+    "Actionable recommendations provided"
+  ]
+}
+```
+
+Then, from your MCP client (e.g. Claude Code / VS Code):
+
+```
+User: "Review src/api/handlers.ts for bugs and performance"
+
+Claude (using MCP tools):
+create_task_spec({
+  task: "Review src/api/handlers.ts",
+  executor: "gemini",
+  template: "code-review",
+  context: { criteria: ["bugs", "performance"] }
+})
+
+delegate_task({
+  taskId: "task-123",
+  executor: "gemini"
+})
+
+[Gemini executes]
+
+collect_report({
+  taskId: "task-123"
+})
+
+Claude: [Reviews report and responds to user]
+```
+
+</details>
 
 ### Core Capabilities
 
@@ -79,10 +142,10 @@ Total: ~800 tokens of coordination overhead
 **With orchestration:**
 ```
 User → Claude: "Generate debate on AI ethics"
-Claude: orchestrator.create_task(...) → 50 tokens
-orchestrator.delegate() → auto-handoff (0 Claude tokens)
-Gemini executes → orchestrator.collect_report() → 50 tokens
-Claude: orchestrator.review(...) → 50 tokens
+Claude: create_task_spec(...) → 50 tokens
+delegate_task(...) → auto-handoff (0 Claude tokens)
+Gemini executes → collect_report(...) → 50 tokens
+Claude: review_output(...) → 50 tokens
 Total: ~150 tokens (81% reduction!)
 ```
 
@@ -115,89 +178,6 @@ cd mcp-agent-orchestrator
 npm install
 npm run build
 ```
-
-## Quick Start
-
-### 1. Configure Your Agents
-
-Create `squadron-config.json` in your project root:
-
-```json
-{
-  "agents": {
-    "claude": {
-      "role": "planner",
-      "capabilities": ["planning", "editorial-review", "strategy"],
-      "tokenBudget": 100000
-    },
-    "gemini": {
-      "role": "executor",
-      "capabilities": ["code-reading", "execution", "validation"],
-      "tokenBudget": 1000000
-    }
-  },
-  "templates": {
-    "code-review": "templates/code-review.json",
-    "debate-generation": "templates/debate-generation.json"
-  }
-}
-```
-
-### 2. Create a Task Template
-
-`templates/code-review.json`:
-
-```json
-{
-  "name": "code-review",
-  "description": "Review code for quality, bugs, and best practices",
-  "inputs": [
-    { "name": "filePath", "type": "string", "required": true },
-    { "name": "criteria", "type": "array", "default": ["quality", "bugs", "style"] }
-  ],
-  "executionSteps": [
-    "Read the code file",
-    "Analyze against criteria",
-    "Identify issues and improvements",
-    "Generate structured report"
-  ],
-  "successCriteria": [
-    "All criteria evaluated",
-    "Actionable recommendations provided"
-  ]
-}
-```
-
-### 3. Use in Your Workflow
-
-**In Claude Code / VS Code:**
-
-```
-User: "Review src/api/handlers.ts for bugs and performance"
-
-Claude (using MCP tools):
-orchestrator.create_task_spec({
-  task: "Review src/api/handlers.ts",
-  executor: "gemini",
-  template: "code-review",
-  context: { criteria: ["bugs", "performance"] }
-})
-
-orchestrator.delegate_task({
-  taskId: "task-123",
-  executor: "gemini"
-})
-
-[Gemini executes in background]
-
-orchestrator.collect_report({
-  taskId: "task-123"
-})
-
-Claude: [Reviews report and responds to user]
-```
-
-**Result:** Same workflow, 80% less coordination overhead.
 
 ## Architecture
 
@@ -446,6 +426,9 @@ mcp-agent-orchestrator/
 │   ├── index.ts              # MCP server entry point
 │   ├── cli.ts                # CLI for standalone usage
 │   ├── tools/                # MCP tool implementations
+│   ├── prompts/               # MCP prompt templates
+│   ├── plugins/               # Plugin loading/application
+│   ├── setup/                 # squadron init wizard, auth detection, client config
 │   ├── templates/            # Template system
 │   ├── state/                # State management
 │   └── utils/                # Utilities
@@ -453,7 +436,7 @@ mcp-agent-orchestrator/
 ├── tests/                    # Test suites
 ├── examples/                 # Example workflows
 ├── docs/                     # Documentation
-└── sprints/                  # Development sprints
+└── .internal/                 # AI-agent build-coordination history (not user docs)
 ```
 
 ### Running Tests
@@ -512,111 +495,3 @@ This orchestrator extracts patterns from:
 
 **Built with ❤️ for efficient multi-agent workflows**
 
-## Sprint 001 Status
-
-Sprint 001 delivers a working MCP server foundation with stdio transport, tool registration, and Vitest coverage.
-
-Implemented tools:
-- `ping`
-- `create_task_spec`
-- `delegate_task`
-- `collect_report`
-
-Verification commands:
-```bash
-npm run build
-npm test
-npm run lint
-npm run dev
-```
-
-See `docs/getting-started.md` for setup and connection details.
-
-## Sprint 002 Status
-
-Sprint 002 is implemented with:
-- Template schemas and loader/registry (`src/templates/types.ts`, `src/templates/loader.ts`)
-- In-memory orchestration state manager (`src/state/types.ts`, `src/state/state-manager.ts`)
-- Built-in templates expanded to 6 files including `debate-generation`, `documentation`, and `typescript-test`
-- Tool integration: `create_task_spec`, `delegate_task`, and `collect_report` now persist and update orchestration state
-
-See:
-- `docs/templates.md`
-- `docs/state-management.md`
-- `examples/template-usage.ts`
-
-## Sprint 003 Status
-
-Sprint 003 core orchestration tools are implemented and registered:
-- `create_task_spec`
-- `delegate_task`
-- `collect_report`
-- `review_output`
-- `track_workflow`
-
-End-to-end workflow is covered by tests in `tests/tools/orchestration-workflow.test.ts` and runnable example script `examples/orchestration-workflow.ts`.
-
-## Sprint 004 Status
-
-Sprint 004 is implemented with:
-- Config system (`src/config/types.ts`, `src/config/loader.ts`)
-- Role boundary enforcement (`src/enforcement/role-enforcer.ts`)
-- Token tracking and analytics (`src/metrics/token-tracker.ts`, `src/tools/optimize-tokens.ts`)
-- Quality gates integrated into `collect_report` (`src/quality/gates.ts`)
-
-Additional docs:
-- `docs/configuration.md`
-- `docs/role-boundaries.md`
-- `docs/token-optimization.md`
-
-## Sprint 005 Status
-
-Sprint 005 is implemented with:
-- Standalone CLI (`src/cli.ts`) with commands:
-  - `init`
-  - `task create`
-  - `workflow track`
-  - `metrics`
-  - `dashboard`
-- Dashboard server and API (`src/dashboard/server.ts`)
-- Dashboard web UI (`src/dashboard/public/index.html`, `src/dashboard/public/app.js`)
-- Persistent state storage:
-  - `src/state/storage-adapter.ts`
-  - `src/state/file-storage-adapter.ts`
-- Packaging hardening for npm (`.npmignore`, `LICENSE`, `CHANGELOG.md`, `package.json files`)
-
-Additional docs:
-- `docs/cli.md`
-- `docs/dashboard.md`
-
-## Sprint 006 Status
-
-Sprint 006 is implemented with:
-- Intent classification and recommendations:
-  - `src/tools/classify-intent.ts`
-  - `src/config/classification-rules.ts`
-  - `src/config/classification-rules.json`
-- Workflow parameter extraction:
-  - `src/tools/extract-workflow-params.ts`
-- Context-aware decision support:
-  - `src/tools/detect-context.ts`
-  - `src/config/context-rules.ts`
-  - `src/config/context-rules.json`
-- Intelligent auto-orchestration:
-  - `src/tools/auto-orchestrate.ts`
-  - `src/config/auto-trigger-config.ts`
-- Progress and UX formatting:
-  - `src/tools/progress-reporter.ts`
-  - `src/utils/message-formatter.ts`
-
-Additional docs/examples:
-- `docs/AUTO_ORCHESTRATION.md`
-- `examples/auto-orchestration-examples.md`
-
-Additional tests:
-- `tests/tools/classify-intent.test.ts`
-- `tests/tools/extract-workflow-params.test.ts`
-- `tests/tools/detect-context.test.ts`
-- `tests/tools/auto-orchestrate.test.ts`
-- `tests/tools/progress-reporter.test.ts`
-- `tests/integration/auto-orchestration.test.ts`

@@ -1,6 +1,28 @@
+import { detectAgentAuth } from "../setup/auth-detection.js";
+
 export type AgentType = "claude" | "gemini" | "codex";
 export type AgentRole = "planner" | "executor" | "reviewer";
 export type AuthMethod = "global-cli" | "subscription" | "api-key";
+
+const SUBSCRIPTION_TOKEN_ENV_VAR: Record<AgentType, string> = {
+  claude: "ANTHROPIC_SUBSCRIPTION_TOKEN",
+  gemini: "GOOGLE_SUBSCRIPTION_TOKEN",
+  codex: "OPENAI_SUBSCRIPTION_TOKEN",
+};
+
+// Global CLI login takes priority (matches the documented priority order in
+// docs/QUICK_START_GLOBAL_AUTH.md), then a subscription token, then falls
+// back to "api-key" as the default assumption when neither is detected -
+// same fallback the old hardcoded behavior always used.
+function resolveAuthMethod(agent: AgentType): AuthMethod {
+  if (detectAgentAuth()[agent].method === "global-cli") {
+    return "global-cli";
+  }
+  if (process.env[SUBSCRIPTION_TOKEN_ENV_VAR[agent]]) {
+    return "subscription";
+  }
+  return "api-key";
+}
 
 export interface AgentCredits {
   agent: AgentType;
@@ -45,7 +67,7 @@ export class AgentManager {
     this.configs.set("claude", {
       name: "claude",
       roles: ["planner", "reviewer"],
-      authMethod: "api-key",
+      authMethod: resolveAuthMethod("claude"),
       fallbacks: ["codex"],
       priority: 1,
     });
@@ -53,7 +75,7 @@ export class AgentManager {
     this.configs.set("gemini", {
       name: "gemini",
       roles: ["executor"],
-      authMethod: "api-key",
+      authMethod: resolveAuthMethod("gemini"),
       fallbacks: ["codex"],
       priority: 2,
     });
@@ -61,7 +83,7 @@ export class AgentManager {
     this.configs.set("codex", {
       name: "codex",
       roles: ["planner", "executor", "reviewer"],
-      authMethod: "api-key",
+      authMethod: resolveAuthMethod("codex"),
       fallbacks: [],
       priority: 3,
     });

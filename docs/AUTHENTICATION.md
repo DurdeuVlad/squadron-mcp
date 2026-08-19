@@ -2,12 +2,15 @@
 
 ## Overview
 
-The Squadron supports **dual authentication** for maximum flexibility:
+Squadron supports three authentication methods, checked in this order:
 
-1. **Subscription-based auth** (preferred, higher limits, no per-token cost)
-2. **API key auth** (fallback, pay-per-use, good for development)
+1. **Global CLI login** (if you're already logged in to `claude`/`gemini`/`codex` on this machine — see [Global Auth Quick Start](QUICK_START_GLOBAL_AUTH.md))
+2. **Subscription token** (higher limits, no per-token cost)
+3. **API key** (pay-per-use, good for development)
 
-**Priority:** Subscription → API Key → Unavailable
+**Priority:** Global CLI Login → Subscription → API Key → Unavailable
+
+Detection for step 1 is real and minimal: `src/setup/auth-detection.ts`'s `detectAgentAuth()` checks whether the credential file each CLI's login writes actually exists on disk (`fs.existsSync`, no OAuth handshake, no live session validation). Steps 2 and 3 are plain environment variable presence checks. `squadron init` shows you the result of this check for all three agents before writing your config.
 
 ---
 
@@ -84,35 +87,21 @@ OPENAI_API_KEY=sk-xxx
 
 ## How Authentication Selection Works
 
-```typescript
-// Pseudo-code (actual implementation in agent-config.ts)
+This is the real logic (`resolveAuthMethod` in `src/config/agent-config.ts`, backed by `detectAgentAuth` in `src/setup/auth-detection.ts`):
 
-function selectAuth(agent: 'claude' | 'gemini' | 'codex') {
-  // Check for subscription token
-  if (hasSubscriptionToken(agent)) {
-    console.log(`Using SUBSCRIPTION for ${agent} (10x limits, free per-token)`);
-    return {
-      method: 'subscription',
-      dailyLimit: highLimit, // 10M, 20M, or 5M
-      costPerToken: 0
-    };
+```typescript
+function resolveAuthMethod(agent: "claude" | "gemini" | "codex"): AuthMethod {
+  if (detectAgentAuth()[agent].method === "global-cli") {
+    return "global-cli";
   }
-  
-  // Fallback to API key
-  if (hasApiKey(agent)) {
-    console.log(`Using API KEY for ${agent} (standard limits, pay-per-use)`);
-    return {
-      method: 'api-key',
-      dailyLimit: standardLimit, // 1M, 2M, or 500k
-      costPerToken: marketRate
-    };
+  if (process.env[SUBSCRIPTION_TOKEN_ENV_VAR[agent]]) {
+    return "subscription";
   }
-  
-  // No credentials
-  console.error(`${agent} has no valid credentials!`);
-  return unavailable;
+  return "api-key"; // default assumption when neither is detected
 }
 ```
+
+Note this picks the *method*, not a live credential check — it doesn't verify the API key or subscription token is actually valid, only that something plausible is configured. `AgentManager` (also in `agent-config.ts`) uses the result to set each agent's `authMethod`; the daily-limit/cost figures elsewhere in this doc are illustrative planning numbers, not something the code currently enforces per auth method.
 
 ---
 
@@ -172,20 +161,23 @@ GOOGLE_API_KEY=dev-key-xxx            # ← Keep this as fallback
 ### Step 3: Monitor Costs
 
 ```typescript
-// Get credit status
+// Get credit status - actual AgentCredits shape (src/config/agent-config.ts)
 const status = agentManager.getCreditStatus();
 
 console.log(status);
 // {
-//   claude: { 
-//     authMethod: 'subscription',
-//     isSubscription: true,
-//     costPerToken: 0,
-//     dailyLimit: 10000000,
-//     available: true
-//   }
+//   claude: {
+//     agent: 'claude',
+//     available: true,
+//     creditsRemaining: 1000000,
+//     usageToday: 0,
+//     lastChecked: <Date>
+//   },
+//   ...
 // }
 ```
+
+`authMethod` isn't on `AgentCredits` — it's a separate field on each agent's `AgentConfig` (see `AgentManager`'s internal `configs` map), set by `resolveAuthMethod` above.
 
 ---
 
@@ -305,9 +297,8 @@ ANTHROPIC_SUBSCRIPTION_TOKEN=           # Empty
 ```typescript
 // Debug usage
 const status = agentManager.getCreditStatus();
-console.log(status.claude.usageToday);  // Check current usage
-console.log(status.claude.dailyLimit);  // Check limit
-console.log(status.claude.isSubscription);  // Should be true
+console.log(status.claude.usageToday);        // Check current usage
+console.log(status.claude.creditsRemaining);  // Check remaining budget
 ```
 
 ---

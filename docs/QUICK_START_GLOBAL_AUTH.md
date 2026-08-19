@@ -56,23 +56,23 @@ The orchestrator checks in this order:
 
 ## Verification
 
-Start the orchestrator and check the authentication status:
+Two ways to check what Squadron detected:
 
-```powershell
-cd c:\Users\User\Documents\Github\mcp-agent-orchestrator
-npm run dev
-```
-
-You should see:
+**During setup** — `squadron init` shows a per-agent status line before writing your config:
 
 ```
-🔐 AUTHENTICATION STATUS
-============================================================
-🌐 CLAUDE: GLOBAL CLI (logged in) (10.0M tokens/day, FREE)
-🌐 GEMINI: GLOBAL CLI (logged in) (20.0M tokens/day, FREE)
-🌐 CODEX: GLOBAL CLI (logged in) (5.0M tokens/day, FREE)
-============================================================
+🌐 claude: global CLI login detected
+❌ gemini: no credentials found
+🔑 codex: API key env var set
 ```
+
+**At server startup** — Squadron logs the same detection result to stderr (never stdout — that's the MCP transport channel) as a structured line:
+
+```json
+{"timestamp":"...","level":"info","message":"auth.status","claude":"global-cli","gemini":"none","codex":"api-key"}
+```
+
+`method` is one of `"global-cli"`, `"api-key"`, or `"none"` per agent (see `src/setup/auth-detection.ts`). This is a presence check against the credential file paths above, not a live session validation — it doesn't guarantee the credential is still valid, only that it exists.
 
 **If you see 🌐 GLOBAL CLI** → You're using your existing login! No .env needed.
 

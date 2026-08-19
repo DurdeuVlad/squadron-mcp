@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 
 import { DEFAULT_CONFIG } from "./config/types.js";
 import { createDashboardServer } from "./dashboard/server.js";
+import { runInitWizard } from "./setup/wizard.js";
 import { createTaskSpecTool } from "./tools/create-task-spec.js";
 import { createOrchestratorServicesFromConfig, type OrchestratorServices } from "./tools/registry.js";
 import { trackWorkflowTool } from "./tools/track-workflow.js";
@@ -83,25 +84,38 @@ export function createCli(context: CliContext = defaultContext): Command {
     .option("--config <path>", "Config file path", "squadron-config.json")
     .option("--templates-dir <path>", "Templates directory", "templates")
     .option("--force", "Overwrite existing config file", false)
-    .action((options: { config: string; templatesDir: string; force: boolean }) => {
-      const configPath = resolve(options.config);
-      const templatesDir = resolve(options.templatesDir);
-      const initialConfig = {
-        ...DEFAULT_CONFIG,
-        stateStorage: "file" as const,
-      };
+    .option("--yes", "Skip the interactive wizard, use flags/defaults only", false)
+    .action(
+      async (options: { config: string; templatesDir: string; force: boolean; yes: boolean }) => {
+        const interactive = Boolean(process.stdout.isTTY) && !options.yes;
 
-      if (existsSync(configPath) && !options.force) {
-        context.out(`Config already exists at ${configPath}. Use --force to overwrite.`);
-      } else {
-        writeFileSync(configPath, `${JSON.stringify(initialConfig, null, 2)}\n`, "utf8");
-        context.out(`Wrote config: ${configPath}`);
+        if (interactive) {
+          await runInitWizard(
+            { config: options.config, templatesDir: options.templatesDir, force: options.force },
+            context
+          );
+          return;
+        }
+
+        const configPath = resolve(options.config);
+        const templatesDir = resolve(options.templatesDir);
+        const initialConfig = {
+          ...DEFAULT_CONFIG,
+          stateStorage: "file" as const,
+        };
+
+        if (existsSync(configPath) && !options.force) {
+          context.out(`Config already exists at ${configPath}. Use --force to overwrite.`);
+        } else {
+          writeFileSync(configPath, `${JSON.stringify(initialConfig, null, 2)}\n`, "utf8");
+          context.out(`Wrote config: ${configPath}`);
+        }
+
+        mkdirSync(templatesDir, { recursive: true });
+        mkdirSync(resolve("state"), { recursive: true });
+        context.out(`Ensured directories: ${templatesDir}, ${resolve("state")}`);
       }
-
-      mkdirSync(templatesDir, { recursive: true });
-      mkdirSync(resolve("state"), { recursive: true });
-      context.out(`Ensured directories: ${templatesDir}, ${resolve("state")}`);
-    });
+    );
 
   const task = program.command("task").description("Task operations");
   task
