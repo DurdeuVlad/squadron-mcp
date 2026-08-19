@@ -76,7 +76,7 @@ async function loadServices(configPath: string, templatesDir: string): Promise<O
 export function createCli(context: CliContext = defaultContext): Command {
   const program = new Command();
 
-  program.name("squadron").description("CLI for Squadron").version("0.1.0");
+  program.name("squadron").description("CLI for Squadron").version("0.2.0");
 
   program
     .command("init")

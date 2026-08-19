@@ -148,8 +148,11 @@ mcp-agent-orchestrator/
 │   ├── index.ts     # MCP server entry point
 │   ├── cli.ts       # CLI entry point
 │   ├── tools/       # MCP tool implementations
+│   ├── prompts/      # MCP prompt templates
+│   ├── plugins/      # Plugin loading/application
+│   ├── setup/        # squadron init wizard, auth detection, client config
 │   ├── templates/   # Template system
-│   ├── state/       # State management
+│   ├── state/        # State management
 │   └── ...          # Other modules
 ├── tests/            # Test suites
 ├── templates/        # Built-in templates
@@ -165,9 +168,18 @@ mcp-agent-orchestrator/
 2. Define input schema (Zod)
 3. Implement handler function
 4. Write tests: `tests/tools/my-tool.test.ts`
-5. Register in `src/index.ts`
-6. Document in `docs/api-reference.md`
+5. Register it in `createDefaultToolRegistry` in `src/tools/registry.ts` (not `src/index.ts` — that file only wires the already-built registry into the MCP server's request handlers)
+6. Document in `docs/api-reference.md` and `docs/tools.md`
 7. Add example to `examples/`
+
+Prefer shipping a matching [Prompt](docs/prompts.md) alongside a new tool that needs real usage guidance — see `src/prompts/` for the pattern.
+
+### Adding a New MCP Prompt
+
+1. Create prompt file: `src/prompts/my-prompt.ts`, matching the `PromptDefinition` shape in `src/prompts/types.ts`
+2. Write tests: extend `tests/prompts/default-prompts.test.ts` or add a dedicated test file
+3. Register it in `createDefaultPromptRegistry` in `src/prompts/index.ts`
+4. Document in `docs/prompts.md`
 
 ### Adding a New Template
 
@@ -175,6 +187,10 @@ mcp-agent-orchestrator/
 2. Follow template schema (see `src/templates/types.ts`)
 3. Add to templates list in docs
 4. Create example usage
+
+### Writing a Plugin (not a core-code change)
+
+If what you're adding is genuinely optional/third-party-ish rather than a core capability, consider a [plugin](docs/plugins.md) instead of a PR — see `examples/plugins/hello-plugin.js` for a worked example.
 
 ### Adding a New Storage Backend
 
