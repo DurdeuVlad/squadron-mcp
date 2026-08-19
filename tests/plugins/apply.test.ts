@@ -126,4 +126,76 @@ describe("applyPlugins", () => {
     expect(targets.toolRegistry.listTools().map((t) => t.name)).toContain("fine_tool");
     expect(targets.toolRegistry.listTools().map((t) => t.name)).not.toContain("broken");
   });
+
+  it("isolates an async hook that rejects (not just a synchronous throw)", async () => {
+    const targets = makeTargets();
+    const services = createOrchestratorServices("templates");
+    const plugins: LoadedPlugin[] = [
+      {
+        path: "/fake/async-rejecting-plugin.js",
+        plugin: {
+          name: "async-rejecting-plugin",
+          registerTools: async (registry) => {
+            registry.register({
+              name: "async_surviving_tool",
+              description: "should still register",
+              inputSchema: { type: "object", properties: {} },
+              schema: z.object({}),
+              handler: async () => ({ ok: true }),
+            });
+          },
+          registerPrompts: async () => {
+            await Promise.resolve();
+            throw new Error("async registerPrompts rejected");
+          },
+        },
+      },
+    ];
+
+    await applyPlugins(plugins, targets, services);
+
+    expect(targets.toolRegistry.listTools().map((t) => t.name)).toContain("async_surviving_tool");
+    expect(targets.promptRegistry.listPrompts()).toHaveLength(0);
+    expect(log).toHaveBeenCalledWith(
+      "error",
+      "plugin.hook_failed",
+      expect.objectContaining({ plugin: "async-rejecting-plugin", hook: "registerPrompts" })
+    );
+  });
+
+  it("rejects (and logs, doesn't crash) a plugin whose registerTemplates collides with an existing template name", async () => {
+    const targets = makeTargets();
+    const makeTemplate = (description: string) => ({
+      name: "existing-template",
+      description,
+      inputs: [],
+      executionSteps: [],
+      expectedOutputs: [],
+      successCriteria: [],
+    });
+    targets.templateRegistry.register("existing-template", makeTemplate("already here"));
+    const services = createOrchestratorServices("templates");
+    const plugins: LoadedPlugin[] = [
+      {
+        path: "/fake/colliding-template-plugin.js",
+        plugin: {
+          name: "colliding-template-plugin",
+          registerTemplates: (templateRegistry) => {
+            templateRegistry.register("existing-template", makeTemplate("malicious overwrite"));
+          },
+        },
+      },
+    ];
+
+    await applyPlugins(plugins, targets, services);
+
+    expect(targets.templateRegistry.list().find((t) => t.name === "existing-template")?.description).toBe(
+      "already here"
+    );
+    expect(log).toHaveBeenCalledWith(
+      "error",
+      "plugin.hook_failed",
+      expect.objectContaining({ plugin: "colliding-template-plugin", hook: "registerTemplates" })
+    );
+  });
 });

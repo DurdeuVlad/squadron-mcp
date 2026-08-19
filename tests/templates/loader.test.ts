@@ -44,4 +44,22 @@ describe("TemplateRegistry", () => {
 
     expect(isTaskTemplate(template)).toBe(true);
   });
+
+  it("register() throws on a duplicate name rather than silently overwriting", () => {
+    const registry = new TemplateRegistry(new TemplateLoader("templates"));
+    const template = {
+      name: "my-template",
+      description: "first",
+      inputs: [],
+      executionSteps: [],
+      expectedOutputs: [],
+      successCriteria: [],
+    };
+
+    registry.register("my-template", template);
+
+    expect(() =>
+      registry.register("my-template", { ...template, description: "second" })
+    ).toThrow("Template already registered: my-template");
+  });
 });
