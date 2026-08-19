@@ -11,6 +11,8 @@ import { pathToFileURL } from "node:url";
 import { log } from "./utils/logger.js";
 import { createDefaultPromptRegistry } from "./prompts/index.js";
 import type { PromptRegistry } from "./prompts/registry.js";
+import { applyPlugins } from "./plugins/apply.js";
+import { loadPlugins } from "./plugins/loader.js";
 import {
   createDefaultToolRegistry,
   createOrchestratorServices,
@@ -69,7 +71,16 @@ export async function startServer(): Promise<void> {
   const services = await createOrchestratorServicesFromConfig();
   await services.templateRegistry.initialize();
 
-  const { server } = createServer(undefined, services);
+  const { server, registry, promptRegistry } = createServer(undefined, services);
+
+  const pluginPaths = services.config.plugins ?? [];
+  const loadedPlugins = await loadPlugins(pluginPaths, process.cwd());
+  await applyPlugins(
+    loadedPlugins,
+    { toolRegistry: registry, promptRegistry, templateRegistry: services.templateRegistry },
+    services
+  );
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
   log("info", "server.started", {
@@ -77,6 +88,8 @@ export async function startServer(): Promise<void> {
     templatesLoaded: services.templateRegistry.listNames().length,
     roleBoundaryEnforcement: services.config.roleBoundaries?.enforce ?? false,
     tokenOptimization: services.config.tokenOptimization?.enabled ?? false,
+    pluginsConfigured: pluginPaths.length,
+    pluginsLoaded: loadedPlugins.length,
   });
 }
 

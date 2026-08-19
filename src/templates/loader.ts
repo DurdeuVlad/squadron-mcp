@@ -82,6 +82,13 @@ export class TemplateRegistry {
     return this.templates.has(name);
   }
 
+  register(name: string, template: Template): void {
+    if (this.templates.has(name)) {
+      throw new Error(`Template already registered: ${name}`);
+    }
+    this.templates.set(name, template);
+  }
+
   list(): Template[] {
     return [...this.templates.values()];
   }
