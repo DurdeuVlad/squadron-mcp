@@ -240,14 +240,12 @@ Enforce what agents can/cannot do:
 
 ### Token Optimization
 
-Configure token tracking and optimization:
+Configure token tracking:
 
 ```json
 {
   "tokenOptimization": {
     "enabled": true,
-    "savingsTarget": 0.5,  // Target 50% reduction
-    "reportSavings": true,
     "alertThreshold": 1000  // Alert if task exceeds 1000 tokens
   }
 }
