@@ -17,6 +17,7 @@ const createTaskSpecSchema = z.object({
   successCriteria: z.array(z.string()).default([]),
   workflowId: z.string().optional(),
   planner: z.string().default("claude"),
+  model: z.string().min(1).optional(),
   dependsOn: z.array(z.string()).optional(),
 });
 
@@ -123,6 +124,7 @@ function toStoredSpec(input: {
     task: input.payload.task,
     executor: input.payload.executor,
     template: input.payload.template,
+    model: input.payload.model,
     dependsOn: input.payload.dependsOn,
     context: input.payload.context,
     inputs: input.payload.inputs,
@@ -178,6 +180,11 @@ export function createTaskSpecTool(
         planner: {
           type: "string",
           description: "Planner agent responsible for generating this task spec.",
+        },
+        model: {
+          type: "string",
+          description:
+            "Optional model this task should use when delegated (e.g. 'sonnet', 'opus'). Overridden by a model passed directly to delegate_task. Only applied for executors with a configured modelFlag; ignored otherwise.",
         },
         dependsOn: {
           type: "array",

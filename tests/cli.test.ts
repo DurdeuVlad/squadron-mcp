@@ -194,4 +194,51 @@ describe("CLI", () => {
     expect(errors).toEqual([]);
     expect(output.join("\n")).toContain(`Workflow ${workflow.id}`);
   });
+
+  it("reports honest aggregate metrics with no fabricated savings language", async () => {
+    const output: string[] = [];
+    const errors: string[] = [];
+    const { configPath, templatesDir, stateDir } = makeTempProject();
+    process.env.SQUADRON_STATE_DIR = stateDir;
+
+    const services = createOrchestratorServices(templatesDir, {
+      ...DEFAULT_CONFIG,
+      stateStorage: "file",
+    });
+    const workflow = services.stateManager.createWorkflow("cli-metrics");
+    services.stateManager.createTask({
+      id: "cli-metrics-task",
+      task: "Task",
+      executor: "gemini",
+      template: "typescript-feature",
+      context: {},
+      inputs: {},
+      executionSteps: [],
+      expectedOutputs: [],
+      successCriteria: [],
+      metadata: { created: new Date().toISOString() },
+    });
+    services.stateManager.addTaskToWorkflow(workflow.id, "cli-metrics-task");
+    services.tokenTracker.trackTokenUsage(workflow.id, "gemini", "execution", 100);
+
+    const cli = createCli({
+      out: (message) => output.push(message),
+      err: (message) => errors.push(message),
+    });
+    await cli.parseAsync([
+      "node",
+      "squadron",
+      "metrics",
+      "--config",
+      configPath,
+      "--templates-dir",
+      templatesDir,
+    ]);
+
+    expect(errors).toEqual([]);
+    const report = output.join("\n");
+    expect(report).toContain("Tasks: 1");
+    expect(report).toContain("Avg tokens/task: 100");
+    expect(report).not.toMatch(/savings/iu);
+  });
 });

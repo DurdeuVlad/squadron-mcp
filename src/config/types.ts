@@ -23,8 +23,6 @@ export const RoleBoundarySchema = z
 export const TokenOptimizationSchema = z
   .object({
     enabled: z.boolean().default(true),
-    savingsTarget: z.number().min(0).max(1).default(0.5),
-    reportSavings: z.boolean().default(true),
     alertThreshold: z.number().positive().optional(),
   })
   .passthrough();
@@ -38,8 +36,18 @@ export const DelegationAgentCommandSchema = z
     promptPlaceholder: z.string().default("{prompt}"),
     passPromptViaStdin: z.boolean().default(false),
     successExitCodes: z.array(z.number().int()).default([0]),
+    /**
+     * CLI args to splice in when a per-task model override is requested, with
+     * "{model}" substituted for the requested model name (e.g. ["--model", "{model}"]).
+     * Leave unset if the agent's real CLI flag syntax hasn't been verified.
+     */
+    modelFlag: z.array(z.string()).optional(),
   })
-  .passthrough();
+  .passthrough()
+  .refine((config) => !config.modelFlag || config.modelFlag.some((arg) => arg.includes("{model}")), {
+    message: 'modelFlag must include a "{model}" placeholder in at least one arg',
+    path: ["modelFlag"],
+  });
 
 export const InteractiveAgentConfigSchema = z.object({
   command: z.string().min(1),
@@ -109,6 +117,7 @@ export const DelegationRuntimeSchema = z
           passPromptViaStdin: false,
           promptPlaceholder: "{prompt}",
           successExitCodes: [0],
+          modelFlag: ["--model", "{model}"],
         }),
         gemini: DelegationAgentCommandSchema.default({
           command: "gemini",
@@ -123,6 +132,7 @@ export const DelegationRuntimeSchema = z
           passPromptViaStdin: false,
           promptPlaceholder: "{prompt}",
           successExitCodes: [0],
+          modelFlag: ["--model", "{model}"],
         }),
       })
       .default({
@@ -132,6 +142,7 @@ export const DelegationRuntimeSchema = z
           passPromptViaStdin: false,
           promptPlaceholder: "{prompt}",
           successExitCodes: [0],
+          modelFlag: ["--model", "{model}"],
         },
         gemini: {
           command: "gemini",
@@ -146,6 +157,7 @@ export const DelegationRuntimeSchema = z
           passPromptViaStdin: false,
           promptPlaceholder: "{prompt}",
           successExitCodes: [0],
+          modelFlag: ["--model", "{model}"],
         },
       }),
   })
@@ -206,8 +218,6 @@ export const DEFAULT_CONFIG: OrchestratorConfig = {
   },
   tokenOptimization: {
     enabled: true,
-    savingsTarget: 0.5,
-    reportSavings: true,
     alertThreshold: 1_000,
   },
   delegationRuntime: {
@@ -229,6 +239,7 @@ export const DEFAULT_CONFIG: OrchestratorConfig = {
         passPromptViaStdin: false,
         promptPlaceholder: "{prompt}",
         successExitCodes: [0],
+        modelFlag: ["--model", "{model}"],
       },
       gemini: {
         command: "gemini",
@@ -245,6 +256,7 @@ export const DEFAULT_CONFIG: OrchestratorConfig = {
         passPromptViaStdin: false,
         promptPlaceholder: "{prompt}",
         successExitCodes: [0],
+        modelFlag: ["--model", "{model}"],
       },
     },
   },

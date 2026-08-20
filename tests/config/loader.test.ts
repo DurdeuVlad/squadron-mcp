@@ -36,8 +36,7 @@ describe("ConfigLoader", () => {
         },
         tokenOptimization: {
           enabled: true,
-          savingsTarget: 0.7,
-          reportSavings: true,
+          alertThreshold: 2_000,
         },
         delegationRuntime: {
           enabled: true,
@@ -54,7 +53,7 @@ describe("ConfigLoader", () => {
 
     const loader = new ConfigLoader();
     const config = await loader.load(file);
-    expect(config.tokenOptimization?.savingsTarget).toBe(0.7);
+    expect(config.tokenOptimization?.alertThreshold).toBe(2_000);
     expect(config.stateStorage).toBe("memory");
     expect(config.delegationRuntime?.enabled).toBe(true);
     expect(config.delegationRuntime?.agents.gemini.command).toBe("gemini");

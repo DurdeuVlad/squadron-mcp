@@ -22,16 +22,28 @@ export function buildExecutorPrompt(input: PromptBuildInput): PromptBuildResult 
   return { prompt };
 }
 
-export function buildCommand(config: CommandConfigInput, prompt: string): BuiltCommand {
+export function buildCommand(
+  config: CommandConfigInput,
+  prompt: string,
+  overrides?: { model?: string }
+): BuiltCommand {
   const placeholder = config.promptPlaceholder ?? DEFAULT_PROMPT_PLACEHOLDER;
   const args = config.args.map((arg) =>
     arg.includes(placeholder) ? arg.replaceAll(placeholder, prompt) : arg
   );
 
   const hasPromptInArgs = args.some((arg) => arg.includes(prompt));
+  const baseArgs = hasPromptInArgs || config.passPromptViaStdin ? args : [...args, prompt];
+
+  const model = overrides?.model;
+  const modelArgs =
+    model && config.modelFlag
+      ? config.modelFlag.map((arg) => arg.replaceAll("{model}", model))
+      : [];
+
   const command: BuiltCommand = {
     command: config.command,
-    args: hasPromptInArgs || config.passPromptViaStdin ? args : [...args, prompt],
+    args: [...baseArgs, ...modelArgs],
     cwd: config.cwd,
     env: config.env,
     successExitCodes: config.successExitCodes,

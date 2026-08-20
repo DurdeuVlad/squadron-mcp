@@ -15,6 +15,7 @@ export const TaskSpecSchema = z
     task: z.string().min(1),
     executor: z.string().min(1),
     template: z.string().min(1),
+    model: z.string().min(1).optional(),
     /** Task IDs that must reach status "completed" before this task can be delegated. */
     dependsOn: z.array(z.string()).optional(),
     context: z.record(z.unknown()).default({}),
@@ -57,6 +58,7 @@ export const TaskExecutionSchema = z
     status: z.enum(["running", "completed", "failed", "timed_out"]),
     agent: z.string().min(1),
     attempt: z.number().int().positive(),
+    model: z.string().min(1).optional(),
     fallbackFrom: z.string().min(1).optional(),
     startedAt: z.string().datetime(),
     endedAt: z.string().datetime().optional(),
