@@ -122,4 +122,33 @@ describe("optimizeTokensTool", () => {
     expect(result.report).toContain("Workflows analyzed: 1");
     expect(result.recommendations).toContain("Workflow portfolio is within expected optimization bounds.");
   });
+
+  it("reports honest aggregate token usage with no fabricated savings language", async () => {
+    const services = createOrchestratorServices("templates");
+    const workflow = services.stateManager.createWorkflow("portfolio-honest");
+    services.stateManager.createTask({
+      id: "honest-task",
+      task: "Task",
+      executor: "gemini",
+      template: "typescript-feature",
+      context: {},
+      inputs: {},
+      executionSteps: [],
+      expectedOutputs: [],
+      successCriteria: [],
+      metadata: { created: new Date().toISOString() },
+    });
+    services.stateManager.addTaskToWorkflow(workflow.id, "honest-task");
+    services.tokenTracker.trackTokenUsage(workflow.id, "gemini", "execution", 60);
+
+    const tool = optimizeTokensTool({
+      stateManager: services.stateManager,
+      tokenTracker: services.tokenTracker,
+      roleEnforcer: services.roleEnforcer,
+    });
+    const result = await tool.handler({});
+
+    expect(result.report).toContain("Avg tokens/task: 60");
+    expect(result.report).not.toMatch(/savings/iu);
+  });
 });
