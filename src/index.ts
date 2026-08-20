@@ -6,9 +6,10 @@ import {
   ListPromptsRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { pathToFileURL } from "node:url";
 
 import { log } from "./utils/logger.js";
+import { isMainModule } from "./utils/is-main-module.js";
+import { getPackageVersion } from "./utils/package-info.js";
 import { createDefaultPromptRegistry } from "./prompts/index.js";
 import type { PromptRegistry } from "./prompts/registry.js";
 import { applyPlugins } from "./plugins/apply.js";
@@ -39,7 +40,7 @@ export function createServer(
   const server = new Server(
     {
       name: "squadron",
-      version: "0.2.0",
+      version: getPackageVersion(),
     },
     {
       capabilities: {
@@ -101,10 +102,7 @@ export async function startServer(): Promise<void> {
   });
 }
 
-const isMain =
-  process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
-
-if (isMain) {
+if (isMainModule(import.meta.url, process.argv[1])) {
   startServer().catch((error: unknown) => {
     const message = error instanceof Error ? error.message : "Unknown startup error.";
     log("error", "server.failed", { error: message });

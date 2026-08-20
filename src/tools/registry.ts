@@ -1,4 +1,5 @@
 import type { CallToolResult, Tool } from "@modelcontextprotocol/sdk/types.js";
+import { existsSync } from "node:fs";
 
 import { collectReportTool } from "./collect-report.js";
 import { createAutoOrchestrateTool } from "./auto-orchestrate.js";
@@ -22,6 +23,7 @@ import { DEFAULT_CONFIG, type OrchestratorConfig } from "../config/types.js";
 import { RoleEnforcer } from "../enforcement/role-enforcer.js";
 import { TokenTracker } from "../metrics/token-tracker.js";
 import { DEFAULT_QUALITY_GATES, type QualityGate } from "../quality/gates.js";
+import { getBundledTemplatesDir } from "../utils/bundled-templates.js";
 
 type AnyWrappedTool = WrappedTool<object>;
 
@@ -89,7 +91,13 @@ export function createOrchestratorServices(
   templatesDir = "templates",
   config: OrchestratorConfig = DEFAULT_CONFIG
 ): OrchestratorServices {
-  const templateLoader = new TemplateLoader(templatesDir);
+  // Fall back to the package's own built-in templates when the requested
+  // directory doesn't exist yet -- e.g. the MCP server started in a
+  // directory where `squadron init` was never run. Never silently fall back
+  // when a directory *does* exist but is simply empty/misconfigured; that's
+  // a real user error worth surfacing, not papering over.
+  const resolvedTemplatesDir = existsSync(templatesDir) ? templatesDir : getBundledTemplatesDir();
+  const templateLoader = new TemplateLoader(resolvedTemplatesDir);
   const templateRegistry = new TemplateRegistry(templateLoader);
   const stateStorageDir = process.env.SQUADRON_STATE_DIR ?? "state";
   if (config.stateStorage === "sqlite") {
