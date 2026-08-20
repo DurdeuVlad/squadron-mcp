@@ -11,7 +11,7 @@ describe("TokenTracker", () => {
     expect(tracker.estimateTokens("12345")).toBe(2);
   });
 
-  it("calculates savings and cost", () => {
+  it("computes real usage and cost - no comparison against an assumed baseline", () => {
     const stateManager = new StateManager();
     const tracker = new TokenTracker(DEFAULT_CONFIG, stateManager);
     const workflow = stateManager.createWorkflow("metrics");
@@ -34,15 +34,16 @@ describe("TokenTracker", () => {
     stateManager.trackTaskTokenUsage("task-1", 100);
     tracker.trackTokenUsage(workflow.id, "gemini", "execution", 100);
 
-    const metrics = tracker.calculateSavings(workflow.id);
+    const metrics = tracker.getUsageMetrics(workflow.id);
     expect(metrics.totalTokens).toBe(100);
     expect(metrics.byAgent.gemini).toBe(100);
-    expect(metrics.savingsVsBaseline).toBe(700);
+    expect(metrics).not.toHaveProperty("savingsVsBaseline");
+    expect(metrics).not.toHaveProperty("savingsPercentage");
   });
 
   it("throws for missing workflow", () => {
     const tracker = new TokenTracker(DEFAULT_CONFIG, new StateManager());
-    expect(() => tracker.calculateSavings("missing")).toThrow("Workflow not found");
+    expect(() => tracker.getUsageMetrics("missing")).toThrow("Workflow not found");
   });
 
   it("returns zero cost for unknown agent pricing", () => {
@@ -50,23 +51,25 @@ describe("TokenTracker", () => {
     expect(tracker.calculateCost("unknown-agent", 100)).toBe(0);
   });
 
-  it("handles empty workflows and reports below-target savings", () => {
+  it("handles empty workflows without crashing and reports zero usage honestly", () => {
     const stateManager = new StateManager();
     const tracker = new TokenTracker(DEFAULT_CONFIG, stateManager);
     const workflow = stateManager.createWorkflow("empty");
 
-    const metrics = tracker.calculateSavings(workflow.id);
+    const metrics = tracker.getUsageMetrics(workflow.id);
     const report = tracker.generateReport(workflow.id);
 
     expect(metrics.totalTokens).toBe(0);
-    expect(metrics.savingsPercentage).toBe(0);
-    expect(report).toContain("Below savings target");
+    expect(report).toContain("Total Tokens: 0");
+    // No fabricated "savings"/"target" language anywhere in the report.
+    expect(report).not.toMatch(/savings/iu);
+    expect(report).not.toMatch(/target/iu);
   });
 
-  it("reports meeting target for strongly optimized workflow", () => {
+  it("generateReport includes a real per-agent cost breakdown", () => {
     const stateManager = new StateManager();
     const tracker = new TokenTracker(DEFAULT_CONFIG, stateManager);
-    const workflow = stateManager.createWorkflow("meets-target");
+    const workflow = stateManager.createWorkflow("cost-breakdown");
     stateManager.createTask({
       id: "task-2",
       task: "Task",
@@ -85,6 +88,8 @@ describe("TokenTracker", () => {
     tracker.trackTokenUsage(workflow.id, "gemini", "execution", 10);
 
     const report = tracker.generateReport(workflow.id);
-    expect(report).toContain("Meets savings target.");
+    expect(report).toContain("**By Agent:**");
+    expect(report).toContain("Cost: $");
+    expect(report).not.toMatch(/savings/iu);
   });
 });

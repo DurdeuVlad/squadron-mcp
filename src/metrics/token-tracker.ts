@@ -13,8 +13,6 @@ export interface TokenMetrics {
     total: number;
   };
   cost: number;
-  savingsVsBaseline: number;
-  savingsPercentage: number;
 }
 
 export class TokenTracker {
@@ -53,17 +51,23 @@ export class TokenTracker {
     return tokens * agentConfig.costPerToken;
   }
 
-  calculateSavings(workflowId: string): TokenMetrics {
+  /**
+   * Real, measured usage for a workflow - no comparison against an assumed
+   * "manual coordination" baseline. An earlier version of this method
+   * computed savingsVsBaseline/savingsPercentage against a hardcoded
+   * baselinePerTask = 800 constant that was never measured against real
+   * usage (traced to a hand-picked illustrative example in an early planning
+   * doc). Removed rather than caveated: a "you saved 81%!" figure nobody
+   * reads the fine print on is worse than no figure at all once the
+   * denominator is known to be invented.
+   */
+  getUsageMetrics(workflowId: string): TokenMetrics {
     const workflow = this.stateManager.getWorkflow(workflowId);
     if (!workflow) {
       throw new Error(`Workflow not found: ${workflowId}`);
     }
 
     const totalTokens = workflow.tokenUsage.total;
-    const baselinePerTask = 800;
-    const baseline = workflow.tasks.length * baselinePerTask;
-    const savings = baseline - totalTokens;
-    const savingsPercentage = baseline > 0 ? savings / baseline : 0;
 
     let totalCost = 0;
     const byAgent: Record<string, number> = {};
@@ -79,15 +83,11 @@ export class TokenTracker {
       byAgent,
       byStage: workflow.tokenUsage,
       cost: totalCost,
-      savingsVsBaseline: savings,
-      savingsPercentage,
     };
   }
 
   generateReport(workflowId: string): string {
-    const metrics = this.calculateSavings(workflowId);
-    const target = this.config.tokenOptimization?.savingsTarget ?? 0.5;
-    const meetsTarget = metrics.savingsPercentage >= target;
+    const metrics = this.getUsageMetrics(workflowId);
 
     return [
       "**Token Usage Report**",
@@ -107,8 +107,6 @@ export class TokenTracker {
       `- Total: ${metrics.byStage.total}`,
       "",
       `Cost: $${metrics.cost.toFixed(4)}`,
-      `Savings: ${metrics.savingsVsBaseline} tokens (${(metrics.savingsPercentage * 100).toFixed(1)}%)`,
-      meetsTarget ? "Meets savings target." : `Below savings target (${(target * 100).toFixed(0)}%).`,
     ].join("\n");
   }
 }

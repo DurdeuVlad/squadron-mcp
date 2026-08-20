@@ -47,22 +47,25 @@ function formatAggregateMetrics(services: OrchestratorServices): string {
   }
 
   let totalTokens = 0;
-  let totalSavings = 0;
+  let totalTasks = 0;
   let totalCost = 0;
 
   for (const workflow of workflows) {
-    const metrics = services.tokenTracker.calculateSavings(workflow.id);
+    const metrics = services.tokenTracker.getUsageMetrics(workflow.id);
     totalTokens += metrics.totalTokens;
-    totalSavings += metrics.savingsVsBaseline;
+    totalTasks += workflow.tasks.length;
     totalCost += metrics.cost;
   }
+
+  const avgTokensPerTask = totalTasks > 0 ? Math.round(totalTokens / totalTasks) : 0;
 
   return [
     "**Aggregate Metrics**",
     "",
     `Workflows: ${workflows.length}`,
+    `Tasks: ${totalTasks}`,
     `Total tokens: ${totalTokens}`,
-    `Total savings: ${totalSavings}`,
+    `Avg tokens/task: ${avgTokensPerTask}`,
     `Total cost: $${totalCost.toFixed(4)}`,
   ].join("\n");
 }
