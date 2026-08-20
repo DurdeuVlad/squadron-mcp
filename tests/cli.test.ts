@@ -1,10 +1,15 @@
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createCli } from "../src/cli.js";
+vi.mock("../src/index.js", () => ({
+  startServer: vi.fn().mockResolvedValue(undefined),
+}));
+
+import { createCli, runCli } from "../src/cli.js";
 import { DEFAULT_CONFIG, type OrchestratorConfig } from "../src/config/types.js";
+import { startServer } from "../src/index.js";
 import { createOrchestratorServices } from "../src/tools/registry.js";
 
 const tempDirs: string[] = [];
@@ -246,5 +251,25 @@ describe("CLI", () => {
     expect(report).toContain("Tasks: 1");
     expect(report).toContain("Avg tokens/task: 100");
     expect(report).not.toMatch(/savings/iu);
+  });
+
+  it("starts the MCP server on a bare invocation with no subcommand", async () => {
+    vi.mocked(startServer).mockClear();
+
+    // This is exactly what argv looks like for `node dist/cli.js` with no
+    // args, and for an npm bin-shim invocation like `npx squadron-mcp` --
+    // the shape the generated mcpServers client config actually runs.
+    await runCli(["node", "squadron"]);
+
+    expect(startServer).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not start the MCP server when a subcommand is given", async () => {
+    vi.mocked(startServer).mockClear();
+    const { configPath, templatesDir } = makeTempProject();
+
+    await runCli(["node", "squadron", "metrics", "--config", configPath, "--templates-dir", templatesDir]);
+
+    expect(startServer).not.toHaveBeenCalled();
   });
 });

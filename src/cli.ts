@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import { existsSync, mkdirSync, realpathSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { pathToFileURL } from "node:url";
 
 import { DEFAULT_CONFIG } from "./config/types.js";
 import { createDashboardServer } from "./dashboard/server.js";
@@ -13,6 +12,7 @@ import { createTaskSpecTool } from "./tools/create-task-spec.js";
 import { createOrchestratorServicesFromConfig, type OrchestratorServices } from "./tools/registry.js";
 import { trackWorkflowTool } from "./tools/track-workflow.js";
 import { scaffoldBuiltinTemplates } from "./utils/bundled-templates.js";
+import { isMainModule } from "./utils/is-main-module.js";
 import { getPackageVersion } from "./utils/package-info.js";
 
 interface CliContext {
@@ -247,21 +247,7 @@ export async function runCli(argv = process.argv): Promise<void> {
   }
 }
 
-function isMainModule(): boolean {
-  if (!process.argv[1]) {
-    return false;
-  }
-  try {
-    // Resolve symlinks (e.g. an npm-installed bin shim like
-    // node_modules/.bin/squadron) before comparing against import.meta.url,
-    // which Node always resolves to the real file path.
-    return import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href;
-  } catch {
-    return false;
-  }
-}
-
-if (isMainModule()) {
+if (isMainModule(import.meta.url, process.argv[1])) {
   runCli().catch((error: unknown) => {
     const message = error instanceof Error ? error.message : String(error);
     defaultContext.err(message);
