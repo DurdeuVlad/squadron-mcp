@@ -135,6 +135,53 @@ describe("StateManager", () => {
     expect(manager.listWorkflows()).toEqual([]);
   });
 
+  it("accepts a task with satisfied dependency references", () => {
+    const manager = new StateManager();
+    manager.createTask(makeTaskSpec("dep-base"));
+    const task = manager.createTask({ ...makeTaskSpec("dep-child"), dependsOn: ["dep-base"] });
+
+    expect(task.spec.dependsOn).toEqual(["dep-base"]);
+    expect(manager.getUnmetDependencies("dep-child")).toEqual(["dep-base"]);
+
+    manager.updateTaskStatus("dep-base", "completed");
+    expect(manager.getUnmetDependencies("dep-child")).toEqual([]);
+  });
+
+  it("returns no unmet dependencies for a task without dependsOn", () => {
+    const manager = new StateManager();
+    manager.createTask(makeTaskSpec("dep-none"));
+    expect(manager.getUnmetDependencies("dep-none")).toEqual([]);
+  });
+
+  it("rejects a task that depends on itself", () => {
+    const manager = new StateManager();
+    expect(() =>
+      manager.createTask({ ...makeTaskSpec("dep-self"), dependsOn: ["dep-self"] })
+    ).toThrow("cannot depend on itself");
+  });
+
+  it("rejects a task that depends on an unknown task", () => {
+    const manager = new StateManager();
+    expect(() =>
+      manager.createTask({ ...makeTaskSpec("dep-unknown"), dependsOn: ["missing-task"] })
+    ).toThrow("depends on unknown task");
+  });
+
+  it("rejects a direct back-reference dependency cycle", () => {
+    const manager = new StateManager();
+    manager.createTask(makeTaskSpec("dep-x"));
+    manager.createTask({ ...makeTaskSpec("dep-y"), dependsOn: ["dep-x"] });
+
+    expect(() =>
+      manager.createTask({ ...makeTaskSpec("dep-x"), dependsOn: ["dep-y"] })
+    ).toThrow("Circular dependency");
+  });
+
+  it("throws for getUnmetDependencies on a missing task", () => {
+    const manager = new StateManager();
+    expect(() => manager.getUnmetDependencies("missing-task")).toThrow("Task not found");
+  });
+
   it("stores execution metadata and history", () => {
     const manager = new StateManager();
     manager.createTask(makeTaskSpec("task-exec"));

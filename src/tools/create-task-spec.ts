@@ -17,6 +17,7 @@ const createTaskSpecSchema = z.object({
   successCriteria: z.array(z.string()).default([]),
   workflowId: z.string().optional(),
   planner: z.string().default("claude"),
+  dependsOn: z.array(z.string()).optional(),
 });
 
 export type CreateTaskSpecInput = z.infer<typeof createTaskSpecSchema>;
@@ -122,6 +123,7 @@ function toStoredSpec(input: {
     task: input.payload.task,
     executor: input.payload.executor,
     template: input.payload.template,
+    dependsOn: input.payload.dependsOn,
     context: input.payload.context,
     inputs: input.payload.inputs,
     executionSteps: input.executionSteps,
@@ -176,6 +178,12 @@ export function createTaskSpecTool(
         planner: {
           type: "string",
           description: "Planner agent responsible for generating this task spec.",
+        },
+        dependsOn: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Task IDs (from prior create_task_spec calls) that must be completed before this task can be delegated.",
         },
       },
       required: ["task"],

@@ -41,4 +41,53 @@ describe("trackWorkflowTool", () => {
 
     await expect(tool.handler({ workflowId: "missing" })).rejects.toThrow("Workflow not found");
   });
+
+  it("classifies task readiness based on unmet dependencies", async () => {
+    const stateManager = new StateManager();
+    const workflow = stateManager.createWorkflow("deps-workflow");
+
+    stateManager.createTask({
+      id: "task-base",
+      task: "Base",
+      executor: "gemini",
+      template: "typescript-feature",
+      context: {},
+      inputs: {},
+      executionSteps: [],
+      expectedOutputs: [],
+      successCriteria: [],
+      metadata: { created: new Date().toISOString() },
+    });
+    stateManager.createTask({
+      id: "task-blocked",
+      task: "Blocked",
+      executor: "gemini",
+      template: "typescript-feature",
+      dependsOn: ["task-base"],
+      context: {},
+      inputs: {},
+      executionSteps: [],
+      expectedOutputs: [],
+      successCriteria: [],
+      metadata: { created: new Date().toISOString() },
+    });
+    stateManager.addTaskToWorkflow(workflow.id, "task-base");
+    stateManager.addTaskToWorkflow(workflow.id, "task-blocked");
+
+    const tool = trackWorkflowTool({ stateManager });
+    const beforeCompletion = await tool.handler({ workflowId: workflow.id });
+
+    const base = beforeCompletion.tasks.find((task) => task.id === "task-base");
+    const blocked = beforeCompletion.tasks.find((task) => task.id === "task-blocked");
+    expect(base?.readiness).toBe("ready");
+    expect(blocked?.readiness).toBe("blocked");
+    expect(blocked?.blockedBy).toEqual(["task-base"]);
+    expect(beforeCompletion.summary).toContain("blocked, waiting on: task-base");
+
+    stateManager.updateTaskStatus("task-base", "completed");
+    const afterCompletion = await tool.handler({ workflowId: workflow.id });
+    const readyNow = afterCompletion.tasks.find((task) => task.id === "task-blocked");
+    expect(readyNow?.readiness).toBe("ready");
+    expect(readyNow?.blockedBy).toBeUndefined();
+  });
 });

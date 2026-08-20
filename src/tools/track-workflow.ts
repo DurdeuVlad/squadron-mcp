@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { type StateManager } from "../state/state-manager.js";
+import type { TaskStatus } from "../state/types.js";
 import type { ToolDefinition } from "./types.js";
 
 const trackWorkflowSchema = z.object({
@@ -28,6 +29,12 @@ export interface TrackWorkflowResult {
     total: number;
   };
   currentTask: string | null;
+  tasks: Array<{
+    id: string;
+    status: TaskStatus;
+    readiness: "ready" | "blocked";
+    blockedBy?: string[];
+  }>;
   summary: string;
 }
 
@@ -67,7 +74,25 @@ export function trackWorkflowTool(
         cancelled: workflow.tasks.filter((task) => task.status === "cancelled").length,
       };
 
-      const taskLines = workflow.tasks.map((task) => `- ${task.id}: ${task.status}`).join("\n");
+      const tasks = workflow.tasks.map((task) => {
+        const blockedBy = deps.stateManager.getUnmetDependencies(task.id);
+        return {
+          id: task.id,
+          status: task.status,
+          readiness: (blockedBy.length > 0 ? "blocked" : "ready") as "ready" | "blocked",
+          blockedBy: blockedBy.length > 0 ? blockedBy : undefined,
+        };
+      });
+
+      const taskLines = tasks
+        .map((task) => {
+          const readinessNote =
+            task.readiness === "blocked"
+              ? ` [blocked, waiting on: ${task.blockedBy?.join(", ")}]`
+              : "";
+          return `- ${task.id}: ${task.status}${readinessNote}`;
+        })
+        .join("\n");
       const summary = [
         `Workflow ${workflow.id} (${workflow.status})`,
         `Completed: ${progress.completed}/${progress.total}`,
@@ -86,6 +111,7 @@ export function trackWorkflowTool(
         progress,
         tokenUsage: workflow.tokenUsage,
         currentTask: workflow.currentTask,
+        tasks,
         summary,
       };
     },

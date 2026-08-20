@@ -45,7 +45,8 @@ describe("Interactive Delegation Integration", () => {
       updateTaskStatus: vi.fn().mockReturnValue({ startTime: new Date().toISOString() }),
       attachTaskExecution: vi.fn(),
       attachTaskReport: vi.fn(),
-      trackTaskTokenUsage: vi.fn()
+      trackTaskTokenUsage: vi.fn(),
+      getUnmetDependencies: vi.fn().mockReturnValue([])
     };
 
     mockRoleEnforcer = {

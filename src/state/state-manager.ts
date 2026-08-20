@@ -63,6 +63,25 @@ export class StateManager {
 
   createTask(specInput: TaskSpec): Task {
     const spec = TaskSpecSchema.parse(specInput);
+
+    if (spec.dependsOn && spec.dependsOn.length > 0) {
+      if (spec.dependsOn.includes(spec.id)) {
+        throw new Error(`Task ${spec.id} cannot depend on itself.`);
+      }
+
+      for (const dependencyId of spec.dependsOn) {
+        const dependencyTask = this.tasks.get(dependencyId);
+        if (!dependencyTask) {
+          throw new Error(`Task ${spec.id} depends on unknown task: ${dependencyId}`);
+        }
+        if (dependencyTask.spec.dependsOn?.includes(spec.id)) {
+          throw new Error(
+            `Circular dependency: ${spec.id} and ${dependencyId} depend on each other.`
+          );
+        }
+      }
+    }
+
     const task = TaskSchema.parse({
       id: spec.id,
       spec,
@@ -77,6 +96,20 @@ export class StateManager {
 
   getTask(id: string): Task | null {
     return this.tasks.get(id) ?? null;
+  }
+
+  /** Task IDs from `dependsOn` that are not yet completed (or don't exist). Empty if none. */
+  getUnmetDependencies(id: string): string[] {
+    const task = this.tasks.get(id);
+    if (!task) {
+      throw new Error(`Task not found: ${id}`);
+    }
+
+    const dependsOn = task.spec.dependsOn ?? [];
+    return dependsOn.filter((dependencyId) => {
+      const dependencyTask = this.tasks.get(dependencyId);
+      return !dependencyTask || dependencyTask.status !== "completed";
+    });
   }
 
   listTasks(): Task[] {

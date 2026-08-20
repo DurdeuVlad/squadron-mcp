@@ -15,6 +15,8 @@ export const TaskSpecSchema = z
     task: z.string().min(1),
     executor: z.string().min(1),
     template: z.string().min(1),
+    /** Task IDs that must reach status "completed" before this task can be delegated. */
+    dependsOn: z.array(z.string()).optional(),
     context: z.record(z.unknown()).default({}),
     inputs: z.record(z.unknown()).default({}),
     executionSteps: z.array(z.string()),

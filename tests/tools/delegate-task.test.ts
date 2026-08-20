@@ -6,12 +6,13 @@ import { StateManager } from "../../src/state/state-manager.js";
 import { createOrchestratorServices } from "../../src/tools/registry.js";
 import { delegateTaskTool } from "../../src/tools/delegate-task.js";
 
-function seedTask(stateManager: StateManager, id: string): void {
+function seedTask(stateManager: StateManager, id: string, dependsOn?: string[]): void {
   stateManager.createTask({
     id,
     task: "Seed task",
     executor: "gemini",
     template: "typescript-feature",
+    dependsOn,
     context: {},
     inputs: {},
     executionSteps: ["step 1"],
@@ -257,5 +258,38 @@ describe("delegateTaskTool", () => {
     expect(task?.status).toBe("failed");
     expect(task?.report?.summary).toContain("failed");
     expect(task?.executionHistory.length).toBe(2);
+  });
+
+  it("refuses delegation when a dependency is not yet completed", async () => {
+    const services = createOrchestratorServices("templates");
+    seedTask(services.stateManager, "task-dep-base");
+    seedTask(services.stateManager, "task-dep-child", ["task-dep-base"]);
+    const tool = delegateTaskTool({ stateManager: services.stateManager, roleEnforcer: services.roleEnforcer });
+
+    await expect(
+      tool.handler(
+        tool.schema.parse({
+          taskId: "task-dep-child",
+          executor: "gemini",
+        })
+      )
+    ).rejects.toThrow("blocked on incomplete dependencies: task-dep-base");
+  });
+
+  it("allows delegation once all dependencies are completed", async () => {
+    const services = createOrchestratorServices("templates");
+    seedTask(services.stateManager, "task-dep-base-2");
+    seedTask(services.stateManager, "task-dep-child-2", ["task-dep-base-2"]);
+    services.stateManager.updateTaskStatus("task-dep-base-2", "completed");
+    const tool = delegateTaskTool({ stateManager: services.stateManager, roleEnforcer: services.roleEnforcer });
+
+    const result = await tool.handler(
+      tool.schema.parse({
+        taskId: "task-dep-child-2",
+        executor: "gemini",
+      })
+    );
+
+    expect(result.status).toBe("delegated");
   });
 });
