@@ -169,6 +169,43 @@ describe("createTaskSpecTool", () => {
     expect(updatedWorkflow?.tasks.some((task) => task.id === result.taskId)).toBe(true);
   });
 
+  it("stores dependsOn on the task spec and rejects unknown dependency ids", async () => {
+    const services = createOrchestratorServices("templates");
+    await services.templateRegistry.initialize();
+    const tool = createTaskSpecTool({
+      templateRegistry: services.templateRegistry,
+      stateManager: services.stateManager,
+      roleEnforcer: services.roleEnforcer,
+    });
+
+    const base = await tool.handler(
+      tool.schema.parse({
+        task: "Base task",
+        inputs: { feature: "Base task", files: ["src/index.ts"] },
+      })
+    );
+    const child = await tool.handler(
+      tool.schema.parse({
+        task: "Child task",
+        inputs: { feature: "Child task", files: ["src/index.ts"] },
+        dependsOn: [base.taskId],
+      })
+    );
+
+    const stored = services.stateManager.getTask(child.taskId);
+    expect(stored?.spec.dependsOn).toEqual([base.taskId]);
+
+    await expect(
+      tool.handler(
+        tool.schema.parse({
+          task: "Bad dependency",
+          inputs: { feature: "Bad dependency", files: ["src/index.ts"] },
+          dependsOn: ["missing-task-id"],
+        })
+      )
+    ).rejects.toThrow("depends on unknown task");
+  });
+
   it("fails when template is not a task template", async () => {
     const services = createOrchestratorServices("templates");
     await services.templateRegistry.initialize();

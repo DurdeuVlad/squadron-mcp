@@ -11,6 +11,7 @@ Key behavior:
 - merges required/default template inputs with provided `inputs` and `context`
 - saves task in `StateManager`
 - optionally links task to a workflow
+- optional `dependsOn`: task IDs (from prior `create_task_spec` calls) that must reach `completed` before this task can be delegated; rejects self-reference, references to unknown task IDs, and direct back-references (A depends on B while B depends on A)
 
 ## `delegate_task`
 
@@ -19,6 +20,7 @@ Delegates a persisted task to an executor.
 Key behavior:
 - validates task exists
 - validates executor matches task spec executor
+- refuses delegation with a clear error if the task has any `dependsOn` task that isn't `completed` yet
 - updates task status to `executing`
 - optionally sets workflow current task
 - returns a formatted handoff payload for executor agents
@@ -60,6 +62,7 @@ Key behavior:
 - returns counts by task state
 - returns stage token usage + total
 - includes current task and textual summary
+- returns a per-task `readiness` classification (`"ready"` or `"blocked"`, with `blockedBy` naming unmet `dependsOn` task IDs) so a connecting planner can query what's safe to delegate next
 
 ## `optimize_tokens`
 

@@ -18,6 +18,7 @@ const createTaskSpecSchema = z.object({
   workflowId: z.string().optional(),
   planner: z.string().default("claude"),
   model: z.string().min(1).optional(),
+  dependsOn: z.array(z.string()).optional(),
 });
 
 export type CreateTaskSpecInput = z.infer<typeof createTaskSpecSchema>;
@@ -124,6 +125,7 @@ function toStoredSpec(input: {
     executor: input.payload.executor,
     template: input.payload.template,
     model: input.payload.model,
+    dependsOn: input.payload.dependsOn,
     context: input.payload.context,
     inputs: input.payload.inputs,
     executionSteps: input.executionSteps,
@@ -183,6 +185,12 @@ export function createTaskSpecTool(
           type: "string",
           description:
             "Optional model this task should use when delegated (e.g. 'sonnet', 'opus'). Overridden by a model passed directly to delegate_task. Only applied for executors with a configured modelFlag; ignored otherwise.",
+        },
+        dependsOn: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Task IDs (from prior create_task_spec calls) that must be completed before this task can be delegated.",
         },
       },
       required: ["task"],

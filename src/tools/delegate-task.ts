@@ -315,6 +315,13 @@ export function delegateTaskTool(
         );
       }
 
+      const unmetDependencies = deps.stateManager.getUnmetDependencies(input.taskId);
+      if (unmetDependencies.length > 0) {
+        throw new Error(
+          `Task ${input.taskId} is blocked on incomplete dependencies: ${unmetDependencies.join(", ")}`
+        );
+      }
+
       deps.roleEnforcer.enforceTaskDelegation(input.planner, input.executor, task.spec.task);
 
       if (input.workflowId) {
