@@ -2,7 +2,7 @@
 
 > **Model Context Protocol server for coordinating multi-agent AI workflows**
 
-[![CI](https://github.com/DurdeuVlad/mcp-agent-orchestrator/actions/workflows/ci.yml/badge.svg)](https://github.com/DurdeuVlad/mcp-agent-orchestrator/actions/workflows/ci.yml)
+[![CI](https://github.com/DurdeuVlad/squadron-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/DurdeuVlad/squadron-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
@@ -174,8 +174,8 @@ Or add to your MCP settings (`~/.config/claude/mcp.json`):
 ### For Development
 
 ```bash
-git clone https://github.com/DurdeuVlad/mcp-agent-orchestrator.git
-cd mcp-agent-orchestrator
+git clone https://github.com/DurdeuVlad/squadron-mcp.git
+cd squadron-mcp
 npm install
 npm run build
 ```
@@ -323,7 +323,7 @@ squadron dashboard --port 3000      # live web view, auto-refreshing
 ### Project Structure
 
 ```
-mcp-agent-orchestrator/
+squadron-mcp/
 ├── src/
 │   ├── index.ts              # MCP server entry point
 │   ├── cli.ts                # CLI for standalone usage
@@ -381,7 +381,8 @@ MIT © 2026 Vlad Durdeu
 
 ## Questions?
 
-- 🐛 Issues: [GitHub Issues](https://github.com/DurdeuVlad/mcp-agent-orchestrator/issues)
+- 🐛 Issues: [GitHub Issues](https://github.com/DurdeuVlad/squadron-mcp/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/DurdeuVlad/squadron-mcp/discussions)
 
 ---
 

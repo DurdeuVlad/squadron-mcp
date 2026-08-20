@@ -20,8 +20,8 @@ squadron init
 ## For development (working on Squadron itself)
 
 ```bash
-git clone https://github.com/DurdeuVlad/mcp-agent-orchestrator.git
-cd mcp-agent-orchestrator
+git clone https://github.com/DurdeuVlad/squadron-mcp.git
+cd squadron-mcp
 npm install
 npm run build
 npm test
