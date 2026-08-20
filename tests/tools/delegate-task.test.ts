@@ -239,6 +239,56 @@ describe("delegateTaskTool", () => {
     expect(task?.execution?.agent).toBe("codex");
   });
 
+  it("does not carry a model override meant for the primary executor onto a fallback executor", async () => {
+    const services = createOrchestratorServices("templates");
+    seedTask(services.stateManager, "task-model-fallback-bleed");
+    const runner = createMockRunner([
+      mockResult("gemini", "failed", {
+        exitCode: 1,
+        stderr: "gemini failed",
+      }),
+      mockResult("codex", "completed", {
+        stdout: '{"summary":"Recovered on fallback","outputs":[],"issues":[],"recommendations":[],"metrics":{}}',
+      }),
+    ]);
+    const tool = delegateTaskTool({
+      stateManager: services.stateManager,
+      roleEnforcer: services.roleEnforcer,
+      delegationRuntime: {
+        ...DEFAULT_CONFIG.delegationRuntime,
+        enabled: true,
+        fallbackOnFailure: true,
+      },
+      agentRunner: runner,
+    });
+
+    const result = await tool.handler(
+      tool.schema.parse({
+        taskId: "task-model-fallback-bleed",
+        executor: "gemini",
+        executionMode: "subprocess",
+        model: "gemini-only-model",
+      })
+    );
+
+    const runMock = runner.run as unknown as ReturnType<typeof vi.fn>;
+    const geminiArgs = runMock.mock.calls[0][0].command.args as string[];
+    const codexArgs = runMock.mock.calls[1][0].command.args as string[];
+
+    // gemini has no modelFlag configured in DEFAULT_CONFIG, so the model is
+    // never spliced in regardless -- but codex does have one, and must not
+    // receive a model name that was only ever meant for gemini.
+    expect(codexArgs).not.toContain("gemini-only-model");
+    expect(geminiArgs).not.toContain("gemini-only-model");
+
+    expect(result.status).toBe("completed");
+    expect(result.execution?.model).toBeUndefined();
+
+    const task = services.stateManager.getTask("task-model-fallback-bleed");
+    expect(task?.executionHistory[0]?.model).toBeUndefined();
+    expect(task?.executionHistory[1]?.model).toBeUndefined();
+  });
+
   it("marks task failed when all subprocess attempts fail", async () => {
     const services = createOrchestratorServices("templates");
     seedTask(services.stateManager, "task-subprocess-fail");
@@ -389,5 +439,18 @@ describe("delegateTaskTool", () => {
     const calledArgs = runMock.mock.calls[0][0].command.args as string[];
     expect(calledArgs).not.toContain("--model");
     expect(result.execution?.model).toBeUndefined();
+  });
+
+  it("rejects an empty-string model at the schema boundary", () => {
+    expect(() =>
+      delegateTaskTool({
+        stateManager: new StateManager(),
+        roleEnforcer: {} as never,
+      }).schema.parse({
+        taskId: "task-empty-model",
+        executor: "claude",
+        model: "",
+      })
+    ).toThrow();
   });
 });

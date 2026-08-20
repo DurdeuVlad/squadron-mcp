@@ -45,7 +45,11 @@ export const DelegationAgentCommandSchema = z
      */
     modelFlag: z.array(z.string()).optional(),
   })
-  .passthrough();
+  .passthrough()
+  .refine((config) => !config.modelFlag || config.modelFlag.some((arg) => arg.includes("{model}")), {
+    message: 'modelFlag must include a "{model}" placeholder in at least one arg',
+    path: ["modelFlag"],
+  });
 
 export const InteractiveAgentConfigSchema = z.object({
   command: z.string().min(1),
