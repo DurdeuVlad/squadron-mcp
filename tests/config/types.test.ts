@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_CONFIG, OrchestratorConfigSchema } from "../../src/config/types.js";
+import {
+  DEFAULT_CONFIG,
+  DelegationAgentCommandSchema,
+  OrchestratorConfigSchema,
+} from "../../src/config/types.js";
 
 describe("config types", () => {
   it("validates default config", () => {
@@ -58,5 +62,37 @@ describe("config types", () => {
 
     expect(parsed.delegationRuntime?.enabled).toBe(true);
     expect(parsed.delegationRuntime?.defaultTimeoutMs).toBe(30_000);
+  });
+
+  it("accepts a modelFlag that includes the {model} placeholder", () => {
+    const parsed = DelegationAgentCommandSchema.parse({
+      command: "claude",
+      args: ["-p", "{prompt}"],
+      successExitCodes: [0],
+      modelFlag: ["--model", "{model}"],
+    });
+
+    expect(parsed.modelFlag).toEqual(["--model", "{model}"]);
+  });
+
+  it("rejects a modelFlag missing the {model} placeholder", () => {
+    expect(() =>
+      DelegationAgentCommandSchema.parse({
+        command: "claude",
+        args: ["-p", "{prompt}"],
+        successExitCodes: [0],
+        modelFlag: ["--model"],
+      })
+    ).toThrow(/modelFlag must include a.*\{model\}.*placeholder/);
+  });
+
+  it("allows omitting modelFlag entirely", () => {
+    const parsed = DelegationAgentCommandSchema.parse({
+      command: "gemini",
+      args: ["-p", "{prompt}"],
+      successExitCodes: [0],
+    });
+
+    expect(parsed.modelFlag).toBeUndefined();
   });
 });

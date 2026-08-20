@@ -26,6 +26,7 @@ const delegateTaskSchema = z.object({
   planner: z.string().default("claude"),
   executionMode: z.enum(["auto", "handoff", "subprocess"]).default("auto"),
   timeoutMs: z.number().int().positive().optional(),
+  model: z.string().min(1).optional(),
 });
 
 export type DelegateTaskInput = z.infer<typeof delegateTaskSchema>;
@@ -56,6 +57,7 @@ export interface DelegationResult {
     endedAt: string;
     fallbackFrom?: AgentName;
     error?: string;
+    model?: string;
   };
   reportSummary?: string;
   reportParser?: "json" | "fenced-json" | "embedded-json" | "plain-text";
@@ -179,11 +181,13 @@ function settleWorkflowAfterTask(stateManager: StateManager, workflowId?: string
 function toExecutionMetadata(
   attempt: AgentExecutionResult,
   attemptNumber: number,
-  fallbackFrom?: AgentName
+  fallbackFrom?: AgentName,
+  model?: string
 ): {
   status: "completed" | "failed" | "timed_out";
   agent: AgentName;
   attempt: number;
+  model?: string;
   fallbackFrom?: AgentName;
   startedAt: string;
   endedAt: string;
@@ -198,6 +202,7 @@ function toExecutionMetadata(
     status: attempt.status,
     agent: attempt.agent,
     attempt: attemptNumber,
+    model,
     fallbackFrom,
     startedAt: attempt.startedAt,
     endedAt: attempt.endedAt,
@@ -210,7 +215,11 @@ function toExecutionMetadata(
   };
 }
 
-function toFinalExecutionOutput(attempt: AgentExecutionResult, primary: AgentName): {
+function toFinalExecutionOutput(
+  attempt: AgentExecutionResult,
+  primary: AgentName,
+  model?: string
+): {
   status: ExecutionStatus;
   agent: AgentName;
   exitCode: number | null;
@@ -220,6 +229,7 @@ function toFinalExecutionOutput(attempt: AgentExecutionResult, primary: AgentNam
   endedAt: string;
   fallbackFrom?: AgentName;
   error?: string;
+  model?: string;
 } {
   return {
     status: attempt.status,
@@ -231,6 +241,7 @@ function toFinalExecutionOutput(attempt: AgentExecutionResult, primary: AgentNam
     endedAt: attempt.endedAt,
     fallbackFrom: attempt.agent !== primary ? primary : undefined,
     error: attempt.error,
+    model,
   };
 }
 
@@ -282,6 +293,11 @@ export function delegateTaskTool(
         timeoutMs: {
           type: "number",
           description: "Optional subprocess timeout override in milliseconds.",
+        },
+        model: {
+          type: "string",
+          description:
+            "Optional model override for this delegation (e.g. 'sonnet', 'opus', 'o3'). Overrides the task spec's model if both are set. Only applied for executors with a configured modelFlag; ignored otherwise.",
         },
       },
       required: ["taskId", "executor"],
@@ -337,10 +353,17 @@ export function delegateTaskTool(
       const executorChain = resolveExecutorChain(input.executor, runtime);
       const attemptedExecutors: AgentName[] = [];
       let finalAttempt: AgentExecutionResult | undefined;
+      let finalAttemptModel: string | undefined;
       const strategy = determineExecutionStrategy(input.executionMode, runtime);
+      const resolvedModel = input.model ?? task.spec.model;
 
       for (const [index, currentExecutor] of executorChain.entries()) {
         attemptedExecutors.push(currentExecutor);
+        // Model names are provider-specific. Only apply the requested model to the
+        // executor the caller actually asked for it on -- a fallback attempt on a
+        // different executor should use that executor's own default, not risk
+        // failing on an unrecognized model name for the provider it was never meant for.
+        const attemptModel = currentExecutor === input.executor ? resolvedModel : undefined;
         log("info", "delegate.subprocess.start", {
           taskId: input.taskId,
           planner: input.planner,
@@ -351,6 +374,11 @@ export function delegateTaskTool(
         });
 
         let attempt: AgentExecutionResult;
+        // Only set when a model override was actually spliced into the real command --
+        // interactive sessions have no per-call model override mechanism, and an
+        // executor with no modelFlag configured never gets one spliced in either,
+        // regardless of attemptModel.
+        let appliedModel: string | undefined;
 
         if (strategy === "interactive" && runtime.interactive) {
           try {
@@ -367,7 +395,8 @@ export function delegateTaskTool(
             });
             // Fall back to one-shot for this attempt
             const commandConfig = runtime.agents[currentExecutor];
-            const builtCommand = buildCommand(commandConfig, prompt);
+            const builtCommand = buildCommand(commandConfig, prompt, { model: attemptModel });
+            appliedModel = attemptModel && commandConfig.modelFlag ? attemptModel : undefined;
             attempt = await runner.run({
               agent: currentExecutor,
               command: builtCommand,
@@ -377,7 +406,8 @@ export function delegateTaskTool(
           }
         } else {
           const commandConfig = runtime.agents[currentExecutor];
-          const builtCommand = buildCommand(commandConfig, prompt);
+          const builtCommand = buildCommand(commandConfig, prompt, { model: attemptModel });
+          appliedModel = attemptModel && commandConfig.modelFlag ? attemptModel : undefined;
           attempt = await runner.run({
             agent: currentExecutor,
             command: builtCommand,
@@ -387,10 +417,11 @@ export function delegateTaskTool(
         }
 
         finalAttempt = attempt;
+        finalAttemptModel = appliedModel;
 
         deps.stateManager.attachTaskExecution(
           input.taskId,
-          toExecutionMetadata(attempt, index + 1, index > 0 ? input.executor : undefined)
+          toExecutionMetadata(attempt, index + 1, index > 0 ? input.executor : undefined, appliedModel)
         );
 
         log("info", "delegate.subprocess.end", {
@@ -420,6 +451,7 @@ export function delegateTaskTool(
           rawOutput: normalized.rawOutput,
           stderr: attempt.stderr,
           executor: currentExecutor,
+          model: appliedModel,
           collectedAt: new Date().toISOString(),
         });
 
@@ -449,7 +481,7 @@ export function delegateTaskTool(
           formattedTask,
           executionMode: "subprocess",
           attemptedExecutors,
-          execution: toFinalExecutionOutput(attempt, input.executor),
+          execution: toFinalExecutionOutput(attempt, input.executor, appliedModel),
           reportSummary: normalized.summary,
           reportParser: normalized.parser,
         };
@@ -471,6 +503,7 @@ export function delegateTaskTool(
           rawOutput: finalAttempt.stdout,
           stderr: finalAttempt.stderr,
           executor: finalAttempt.agent,
+          model: finalAttemptModel,
           collectedAt: new Date().toISOString(),
         });
       }
@@ -491,7 +524,9 @@ export function delegateTaskTool(
         formattedTask,
         executionMode: "subprocess",
         attemptedExecutors,
-        execution: finalAttempt ? toFinalExecutionOutput(finalAttempt, input.executor) : undefined,
+        execution: finalAttempt
+          ? toFinalExecutionOutput(finalAttempt, input.executor, finalAttemptModel)
+          : undefined,
       };
     },
   };

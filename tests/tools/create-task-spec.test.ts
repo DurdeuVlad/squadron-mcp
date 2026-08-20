@@ -187,4 +187,39 @@ describe("createTaskSpecTool", () => {
       )
     ).rejects.toThrow("is not a task template");
   });
+
+  it("stores an optional model on the task spec for later delegation", async () => {
+    const services = createOrchestratorServices("templates");
+    await services.templateRegistry.initialize();
+    const tool = createTaskSpecTool({
+      templateRegistry: services.templateRegistry,
+      stateManager: services.stateManager,
+      roleEnforcer: services.roleEnforcer,
+    });
+
+    const result = await tool.handler(
+      tool.schema.parse({
+        task: "Implement with a specific model",
+        model: "haiku",
+        inputs: {
+          feature: "Implement with a specific model",
+          files: ["src/index.ts"],
+        },
+      })
+    );
+
+    const stored = services.stateManager.getTask(result.taskId);
+    expect(stored?.spec.model).toBe("haiku");
+  });
+
+  it("rejects an empty-string model at the schema boundary", () => {
+    const services = createOrchestratorServices("templates");
+    const tool = createTaskSpecTool({
+      templateRegistry: services.templateRegistry,
+      stateManager: services.stateManager,
+      roleEnforcer: services.roleEnforcer,
+    });
+
+    expect(() => tool.schema.parse({ task: "Bad model", model: "" })).toThrow();
+  });
 });
