@@ -36,14 +36,14 @@ function resolvePublicDir(): string {
 function computeOverview(stateManager: StateManager, tokenTracker: TokenTracker): Record<string, unknown> {
   const workflows = stateManager.listWorkflows();
   let totalTokens = 0;
-  let totalSavings = 0;
+  let totalTasks = 0;
   let totalCost = 0;
 
   for (const workflow of workflows) {
     try {
-      const metrics = tokenTracker.calculateSavings(workflow.id);
+      const metrics = tokenTracker.getUsageMetrics(workflow.id);
       totalTokens += metrics.totalTokens;
-      totalSavings += metrics.savingsVsBaseline;
+      totalTasks += workflow.tasks.length;
       totalCost += metrics.cost;
     } catch {
       // Keep dashboard resilient for partially initialized test state.
@@ -53,7 +53,7 @@ function computeOverview(stateManager: StateManager, tokenTracker: TokenTracker)
   return {
     workflows: workflows.length,
     totalTokens,
-    totalSavings,
+    avgTokensPerTask: totalTasks > 0 ? Math.round(totalTokens / totalTasks) : 0,
     totalCost,
     activeWorkflows: workflows.filter((workflow) => workflow.status === "in-progress").length,
   };
@@ -98,7 +98,7 @@ export function createDashboardServer(
 
     let metrics: TokenMetrics | null = null;
     try {
-      metrics = deps.tokenTracker.calculateSavings(workflow.id);
+      metrics = deps.tokenTracker.getUsageMetrics(workflow.id);
     } catch {
       metrics = null;
     }
@@ -109,7 +109,7 @@ export function createDashboardServer(
   app.get("/api/metrics", (_req, res) => {
     const workflowMetrics = deps.stateManager.listWorkflows().map((workflow) => {
       try {
-        return deps.tokenTracker.calculateSavings(workflow.id);
+        return deps.tokenTracker.getUsageMetrics(workflow.id);
       } catch {
         return null;
       }

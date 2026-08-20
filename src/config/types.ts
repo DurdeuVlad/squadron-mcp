@@ -23,8 +23,6 @@ export const RoleBoundarySchema = z
 export const TokenOptimizationSchema = z
   .object({
     enabled: z.boolean().default(true),
-    savingsTarget: z.number().min(0).max(1).default(0.5),
-    reportSavings: z.boolean().default(true),
     alertThreshold: z.number().positive().optional(),
   })
   .passthrough();
@@ -206,8 +204,6 @@ export const DEFAULT_CONFIG: OrchestratorConfig = {
   },
   tokenOptimization: {
     enabled: true,
-    savingsTarget: 0.5,
-    reportSavings: true,
     alertThreshold: 1_000,
   },
   delegationRuntime: {

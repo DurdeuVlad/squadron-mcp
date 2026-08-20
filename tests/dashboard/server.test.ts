@@ -44,11 +44,13 @@ describe("createDashboardServer", () => {
     const workflowsResponse = await fetch(`${base}/api/workflows`);
     const workflowsPayload = (await workflowsResponse.json()) as {
       workflows: Array<{ id: string }>;
-      overview: { totalTokens: number };
+      overview: { totalTokens: number; avgTokensPerTask: number };
     };
     expect(workflowsResponse.status).toBe(200);
     expect(workflowsPayload.workflows.some((item) => item.id === workflow.id)).toBe(true);
     expect(workflowsPayload.overview.totalTokens).toBe(30);
+    expect(workflowsPayload.overview.avgTokensPerTask).toBe(30);
+    expect(workflowsPayload.overview).not.toHaveProperty("totalSavings");
 
     const workflowResponse = await fetch(`${base}/api/workflows/${workflow.id}`);
     expect(workflowResponse.status).toBe(200);

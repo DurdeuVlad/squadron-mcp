@@ -14,7 +14,7 @@ function renderOverview(overview) {
     { label: "Workflows", value: formatNumber(overview.workflows ?? 0) },
     { label: "Active", value: formatNumber(overview.activeWorkflows ?? 0) },
     { label: "Total Tokens", value: formatNumber(overview.totalTokens ?? 0) },
-    { label: "Savings", value: formatNumber(overview.totalSavings ?? 0) },
+    { label: "Avg Tokens/Task", value: formatNumber(overview.avgTokensPerTask ?? 0) },
     { label: "Cost", value: formatCost(overview.totalCost ?? 0) },
   ];
 

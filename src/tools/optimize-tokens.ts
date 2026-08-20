@@ -86,13 +86,13 @@ function optimizeAll(
 
   const recommendations: string[] = [];
   let totalTokens = 0;
-  let totalSavings = 0;
+  let totalTasks = 0;
   let plannerExecutions = 0;
 
   for (const workflow of workflows) {
-    const metrics = tokenTracker.calculateSavings(workflow.id);
+    const metrics = tokenTracker.getUsageMetrics(workflow.id);
     totalTokens += metrics.totalTokens;
-    totalSavings += metrics.savingsVsBaseline;
+    totalTasks += workflow.tasks.length;
 
     for (const task of workflow.tasks) {
       if (roleEnforcer.getAgentRole(task.executor) === "planner") {
@@ -111,12 +111,13 @@ function optimizeAll(
     recommendations.push("Workflow portfolio is within expected optimization bounds.");
   }
 
+  const avgTokensPerTask = totalTasks > 0 ? Math.round(totalTokens / totalTasks) : 0;
   const report = [
     "**Portfolio Token Optimization Report**",
     "",
     `Workflows analyzed: ${workflows.length}`,
     `Total tokens: ${totalTokens}`,
-    `Aggregate savings vs baseline: ${totalSavings}`,
+    `Avg tokens/task: ${avgTokensPerTask}`,
   ].join("\n");
 
   return {
