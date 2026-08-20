@@ -34,8 +34,8 @@ Be respectful, inclusive, and constructive. We're building tools to help everyon
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/mcp-agent-orchestrator.git
-cd mcp-agent-orchestrator
+git clone https://github.com/YOUR_USERNAME/squadron-mcp.git
+cd squadron-mcp
 
 # Install dependencies
 npm install
@@ -143,7 +143,7 @@ Fixes #56
 ## Project Structure
 
 ```
-mcp-agent-orchestrator/
+squadron-mcp/
 ├── src/              # Source code
 │   ├── index.ts     # MCP server entry point
 │   ├── cli.ts       # CLI entry point
@@ -212,8 +212,8 @@ Maintainers will handle releases:
 
 ## Questions?
 
-- **Issues:** https://github.com/DurdeuVlad/mcp-agent-orchestrator/issues
-- **Discussions:** https://github.com/DurdeuVlad/mcp-agent-orchestrator/discussions
+- **Issues:** https://github.com/DurdeuVlad/squadron-mcp/issues
+- **Discussions:** https://github.com/DurdeuVlad/squadron-mcp/discussions
 - **Email:** [Your Email]
 
 ---

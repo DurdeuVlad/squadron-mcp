@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **Renamed the GitHub repository** from `DurdeuVlad/mcp-agent-orchestrator` to `DurdeuVlad/squadron-mcp`, completing the rename started in 0.2.0 (npm package, CLI, and MCP server identity already matched Squadron; the repo path was the last inconsistency). GitHub redirects the old URL automatically. See `docs/MIGRATION.md`.
+- Enabled GitHub Discussions.
+
 ## 0.2.0 - 2026-08-19
 
 First public-release pass: rebrand, a real subprocess-delegation cleanup, MCP Prompts, a plugin system, and a proper setup experience.
