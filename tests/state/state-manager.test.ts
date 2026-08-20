@@ -153,6 +153,17 @@ describe("StateManager", () => {
     expect(manager.getUnmetDependencies("dep-none")).toEqual([]);
   });
 
+  it("de-duplicates repeated dependsOn ids in the unmet-dependencies list", () => {
+    const manager = new StateManager();
+    manager.createTask(makeTaskSpec("dep-dup-base"));
+    manager.createTask({
+      ...makeTaskSpec("dep-dup-child"),
+      dependsOn: ["dep-dup-base", "dep-dup-base"],
+    });
+
+    expect(manager.getUnmetDependencies("dep-dup-child")).toEqual(["dep-dup-base"]);
+  });
+
   it("rejects a task that depends on itself", () => {
     const manager = new StateManager();
     expect(() =>

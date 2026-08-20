@@ -105,7 +105,7 @@ export class StateManager {
       throw new Error(`Task not found: ${id}`);
     }
 
-    const dependsOn = task.spec.dependsOn ?? [];
+    const dependsOn = [...new Set(task.spec.dependsOn ?? [])];
     return dependsOn.filter((dependencyId) => {
       const dependencyTask = this.tasks.get(dependencyId);
       return !dependencyTask || dependencyTask.status !== "completed";
