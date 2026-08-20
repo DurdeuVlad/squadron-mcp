@@ -202,11 +202,16 @@ export function normalizeExecutorReport(
     ? (payload.metrics as Record<string, unknown>)
     : {};
 
-  const selfReportedTokens = asOptionalNumber(metrics.tokenUsage) || asOptionalNumber(metrics.tokensUsed);
-  // A delegate that self-reports 0 (or omits the field) still spent real
-  // tokens bootstrapping the subprocess call - fall back to the CLI's own
-  // measured usage rather than tracking zero cost for a real call.
-  const tokenUsage = selfReportedTokens ? selfReportedTokens : envelopeFallback;
+  // `??`, not `||`: an explicit tokenUsage: 0 is a defined value and must not
+  // fall through to tokensUsed.
+  const selfReportedTokens = asOptionalNumber(metrics.tokenUsage) ?? asOptionalNumber(metrics.tokensUsed);
+  // A delegate that self-reports exactly 0 while an envelope is present still
+  // spent real tokens bootstrapping the subprocess call - fall back to the
+  // CLI's own measured usage rather than trusting an untrustworthy zero. But
+  // when there's no envelope to fall back to, a self-reported 0 is the best
+  // information available and must be preserved, not silently discarded to
+  // undefined.
+  const tokenUsage = selfReportedTokens ? selfReportedTokens : envelopeFallback ?? selfReportedTokens;
 
   return {
     summary:

@@ -126,4 +126,37 @@ describe("report-normalizer", () => {
 
     expect(normalized.metrics.tokenUsage).toBe(8);
   });
+
+  it("preserves a legitimately self-reported zero tokenUsage when there is no envelope to fall back to", () => {
+    const normalized = normalizeExecutorReport(
+      JSON.stringify({
+        summary: "No changes needed.",
+        outputs: [],
+        issues: [],
+        recommendations: [],
+        metrics: { tokenUsage: 0 },
+      }),
+      "",
+      "fallback"
+    );
+
+    expect(normalized.metrics.tokenUsage).toBe(0);
+  });
+
+  it("does not let an explicit tokenUsage: 0 fall through to tokensUsed", () => {
+    const normalized = normalizeExecutorReport(
+      JSON.stringify({
+        summary: "No changes needed.",
+        outputs: [],
+        issues: [],
+        recommendations: [],
+        metrics: { tokenUsage: 0, tokensUsed: 99 },
+      }),
+      "",
+      "fallback"
+    );
+
+    expect(normalized.metrics.tokenUsage).toBe(0);
+    expect(normalized.metrics.tokensUsed).toBe(99);
+  });
 });
