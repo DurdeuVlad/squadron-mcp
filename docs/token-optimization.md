@@ -1,6 +1,6 @@
 # Token Optimization
 
-Squadron includes token tracking, savings analytics, and optimization recommendations.
+Squadron includes real token tracking, cost tracking, and optimization recommendations - no comparison against an assumed "manual" baseline (an earlier version did this; the baseline was a hardcoded, never-measured constant, so it was removed rather than kept as a misleading number).
 
 ## Components
 
@@ -12,8 +12,8 @@ Squadron includes token tracking, savings analytics, and optimization recommenda
 - total tokens per workflow
 - tokens by agent
 - tokens by stage (`planning`, `execution`, `validation`, `reporting`)
+- average tokens per task
 - estimated cost from per-agent pricing
-- savings vs baseline manual workflow model
 
 ## Tool Output
 

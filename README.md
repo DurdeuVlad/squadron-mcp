@@ -12,12 +12,11 @@
 If you're managing multiple AI agents (Claude for planning, Gemini for execution, etc.), you're probably:
 
 - ✍️ **Writing the same coordination prompts repeatedly** (task specs, handoffs, reports)
-- 💸 **Wasting tokens** on manual coordination overhead (250-500 tokens per handoff)
-- 🔁 **Copy-pasting** task specifications and execution reports between agents
+- 🔁 **Manually copy-pasting** task specifications and execution reports between agents, and between different provider CLIs
 - 📊 **Tracking nothing** (no token metrics, workflow state, or optimization insights)
 - 🚧 **Dealing with inconsistency** (manual enforcement of role boundaries)
 
-**This MCP server solves all of that.**
+**Squadron replaces the manual copy-paste with four tool calls**, and does it the same way whether you're delegating Claude-to-Claude, Claude-to-Gemini, or Claude-to-Codex — no more re-explaining state to a different CLI each time.
 
 ## What It Does
 
@@ -127,28 +126,13 @@ Claude: [Reviews report and responds to user]
 - **🔍 AI Quality Assurance** - Context-aware QA prompts injected automatically (code, docs, configs)
 - **⚡ Role Boundaries** - Enforced agent capabilities (Claude = planning, Gemini = execution, Codex = fallback)
 
-### Token Savings
+### What real delegation actually costs
 
-**Before orchestration:**
-```
-User → Claude: "Generate debate on AI ethics"
-Claude writes 250-token task spec manually
-User copies task spec to Gemini context
-Gemini executes and writes 400-token report
-User copies report back to Claude
-Claude reviews and responds
-Total: ~800 tokens of coordination overhead
-```
+Spawning a delegated subprocess isn't free — each call bootstraps a full agent session, and that's real, measured cost. A single trivial real `claude`-to-`claude` delegation (a one-line docstring task) took **~59 seconds and cost ~$0.30** (~450K token-equivalents including cache creation/read), mostly fixed overhead unrelated to the task's actual difficulty. If your value proposition is "fewer tokens," subprocess delegation alone won't get you there.
 
-**With orchestration:**
-```
-User → Claude: "Generate debate on AI ethics"
-Claude: create_task_spec(...) → 50 tokens
-delegate_task(...) → auto-handoff (0 Claude tokens)
-Gemini executes → collect_report(...) → 50 tokens
-Claude: review_output(...) → 50 tokens
-Total: ~150 tokens (81% reduction!)
-```
+**What it actually replaces is manual work, not tokens**: writing the same task-spec/handoff/report boilerplate by hand, copying it between agents, and doing it differently depending on which CLI you're talking to. `create_task_spec` → `delegate_task` → `collect_report` → `review_output` is the same four calls whether the executor is Claude, Gemini, or Codex — no per-provider glue code, and Squadron tracks real token/cost data for every call (see [Metrics & Observability](#metrics--observability)) instead of you having to estimate it.
+
+If a task is cheap enough that spawning a full session is overkill, route it to a smaller/cheaper model explicitly — see [Configuration](docs/configuration.md) for per-task model overrides.
 
 ## Installation
 
@@ -279,7 +263,7 @@ Gemini → Reads codebase → Implements feature → Runs tests → Reports back
 Claude → Reviews code → Approves or requests changes
 ```
 
-**Token Savings:** 60-80% (Claude doesn't read code files)
+Claude's context never fills up with file contents it doesn't need to plan the next step.
 
 ---
 
@@ -291,7 +275,7 @@ Gemini → Generates content → Validates quality → Creates outputs
 Claude → Editorial review → Approves for publication
 ```
 
-**Token Savings:** 70-85% (batch operations + no context duplication)
+Batches run under `track_workflow` with real progress/token visibility instead of you polling each task by hand.
 
 ---
 
@@ -303,13 +287,13 @@ Gemini → Executes tasks sequentially → Validates each step
 Claude → Reviews progress → Adjusts plan as needed
 ```
 
-**Token Savings:** 50-70% (state management reduces re-explanation)
+Task state persists between steps, so Claude doesn't need the whole refactor re-explained at each check-in.
 
 ## Metrics & Observability
 
 Track coordination efficiency via the CLI or the [dashboard](docs/dashboard.md):
 
-- **Token usage** - per-workflow, with totals and savings vs. a naive baseline
+- **Token usage** - real totals per-workflow and per-agent, plus average tokens/task
 - **Cost tracking** - token cost by agent, based on configured `costPerToken`
 
 ```bash

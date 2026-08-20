@@ -32,4 +32,4 @@ await dashboard.start();
 
 - Auto-refresh interval: 5 seconds
 - Workflow cards show status, task count, token totals, and current task
-- Overview cards show workflow count, active count, token totals, savings, and cost
+- Overview cards show workflow count, active count, token totals, avg tokens/task, and cost
