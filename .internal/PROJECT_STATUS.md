@@ -1,5 +1,7 @@
 # Squadron - Project Status
 
+> **2026-08-20 addendum:** the token-savings figures throughout this document and the rest of `.internal/` (e.g. "800-1500 tokens per handoff," "targeting 50-80% savings, actually achieving 90%+," "800+ tokens saved per task") are illustrative estimates from initial planning, not measurements. A live end-to-end test of real subprocess delegation found the shipped `baselinePerTask = 800` constant they trace back to (`.internal/sprints/sprint-004-.../README.md:320`, `const baselinePerTask = 250 + 400 + 150`) was never validated against real usage, and the comparison it powered has since been removed from the codebase (`src/metrics/token-tracker.ts`) in favor of honest real-usage reporting. The real, measured value of subprocess delegation is time and automation — no manual copy-paste between provider CLIs — not a specific token-savings percentage. Not rewritten below to preserve the historical record.
+
 **Created:** 2026-02-12  
 **Status:** Core Roadmap Complete (Sprints 001-007)  
 **Version Target:** 0.1.0
