@@ -8,6 +8,28 @@ interface ParsedPayload {
   metrics?: unknown;
 }
 
+// Shape of `claude --output-format json`'s own wrapper: the real answer is
+// nested inside `.result` (itself possibly fenced/embedded JSON), not at the
+// top level. Detected structurally (has `result: string` plus at least one of
+// the CLI's own metadata fields) rather than by agent name, since other CLIs
+// may adopt the same shape.
+export interface CliEnvelope {
+  result: string;
+  usage?: Record<string, unknown>;
+  total_cost_usd?: number;
+}
+
+function isCliEnvelope(value: unknown): value is CliEnvelope {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const obj = value as Record<string, unknown>;
+  if (typeof obj.result !== "string") {
+    return false;
+  }
+  return (typeof obj.usage === "object" && obj.usage !== null) || typeof obj.total_cost_usd === "number";
+}
+
 function asStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return [];
@@ -37,7 +59,8 @@ function extractEmbeddedJson(text: string): string | null {
   return text.slice(start, end + 1);
 }
 
-function parsePayload(text: string): { payload?: ParsedPayload; parser: NormalizedExecutorReport["parser"] } {
+/** json -> fenced-json -> embedded-json -> plain-text, without envelope awareness. */
+function parseInner(text: string): { payload?: ParsedPayload; parser: NormalizedExecutorReport["parser"] } {
   const trimmed = text.trim();
   if (!trimmed) {
     return { parser: "plain-text" };
@@ -70,14 +93,71 @@ function parsePayload(text: string): { payload?: ParsedPayload; parser: Normaliz
   return { parser: "plain-text" };
 }
 
+interface ParseResult {
+  payload?: ParsedPayload;
+  parser: NormalizedExecutorReport["parser"];
+  /** Text to fall back to as the summary when no payload parses - the raw
+   * stdout normally, but the unwrapped `.result` text when a CLI envelope
+   * was detected, so a plain-text answer inside `.result` doesn't get buried
+   * under the envelope's own JSON metadata. */
+  fallbackText: string;
+  /** Present only when stdout was a known CLI wrapper (e.g. claude
+   * --output-format json) - carries usage/cost metadata for token tracking. */
+  envelope?: CliEnvelope;
+}
+
+function parsePayload(text: string): ParseResult {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return { parser: "plain-text", fallbackText: text };
+  }
+
+  let rootParsed: unknown;
+  try {
+    rootParsed = JSON.parse(trimmed);
+  } catch {
+    rootParsed = undefined;
+  }
+
+  if (rootParsed !== undefined) {
+    if (isCliEnvelope(rootParsed)) {
+      // Don't treat the envelope itself as the report - the real payload is
+      // nested inside .result. Re-run the same fallback chain against it.
+      const inner = parseInner(rootParsed.result);
+      return { ...inner, fallbackText: rootParsed.result, envelope: rootParsed };
+    }
+    return { payload: rootParsed as ParsedPayload, parser: "json", fallbackText: text };
+  }
+
+  const fenced = extractFencedJson(trimmed);
+  if (fenced) {
+    try {
+      return { payload: JSON.parse(fenced) as ParsedPayload, parser: "fenced-json", fallbackText: text };
+    } catch {
+      // ignore
+    }
+  }
+
+  const embedded = extractEmbeddedJson(trimmed);
+  if (embedded) {
+    try {
+      return { payload: JSON.parse(embedded) as ParsedPayload, parser: "embedded-json", fallbackText: text };
+    } catch {
+      // ignore
+    }
+  }
+
+  return { parser: "plain-text", fallbackText: text };
+}
+
 export function normalizeExecutorReport(
   stdout: string,
   stderr: string,
   fallbackSummary: string
 ): NormalizedExecutorReport {
-  const { payload, parser } = parsePayload(stdout);
+  const { payload, parser, fallbackText } = parsePayload(stdout);
   if (!payload) {
-    const summary = stdout.trim() || stderr.trim() || fallbackSummary;
+    const summary = fallbackText.trim() || stderr.trim() || fallbackSummary;
     return {
       summary: summary.slice(0, 2_000),
       outputs: [],
