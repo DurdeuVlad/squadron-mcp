@@ -206,6 +206,8 @@ Squadron exposes 11 tools over MCP — the core coordination loop is `create_tas
 
 Full schemas and examples: **[Tools API](docs/tools.md)** · **[Prompts API](docs/prompts.md)** · **[API Reference](docs/api-reference.md)**
 
+Squadron's default coordination pattern is Manager-Worker, with the planner also acting as reviewer — see **[Orchestration Patterns](docs/orchestration-patterns.md)** for why, and what was deliberately left out.
+
 ## Templates
 
 Templates define reusable coordination patterns. Included templates:
