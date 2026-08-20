@@ -84,4 +84,79 @@ describe("report-normalizer", () => {
     expect(normalized.parser).toBe("json");
     expect(normalized.summary).toBe("done");
   });
+
+  it("falls back to the envelope's real usage when the delegate self-reports zero tokens", () => {
+    const envelope = JSON.stringify({
+      is_error: false,
+      total_cost_usd: 0.09,
+      usage: { input_tokens: 2, output_tokens: 837, cache_creation_input_tokens: 11822, cache_read_input_tokens: 16652 },
+      result:
+        '```json\n{"summary":"No implementation applicable.","outputs":[],"issues":[],"recommendations":[],"metrics":{"tokensUsed":0}}\n```',
+    });
+
+    const normalized = normalizeExecutorReport(envelope, "", "fallback");
+
+    expect(normalized.metrics.tokenUsage).toBe(2 + 837 + 11822 + 16652);
+    // The delegate's own self-reported field is preserved as-is, separately.
+    expect(normalized.metrics.tokensUsed).toBe(0);
+  });
+
+  it("never overwrites a nonzero self-reported token value with the envelope fallback", () => {
+    const envelope = JSON.stringify({
+      is_error: false,
+      total_cost_usd: 0.09,
+      usage: { input_tokens: 2, output_tokens: 837, cache_creation_input_tokens: 11822, cache_read_input_tokens: 16652 },
+      result: '```json\n{"summary":"Done.","outputs":[],"issues":[],"recommendations":[],"metrics":{"tokensUsed":42}}\n```',
+    });
+
+    const normalized = normalizeExecutorReport(envelope, "", "fallback");
+
+    expect(normalized.metrics.tokenUsage).toBe(42);
+  });
+
+  it("uses the envelope's usage as tokenUsage even when .result has no parseable payload at all", () => {
+    const envelope = JSON.stringify({
+      is_error: false,
+      total_cost_usd: 0.01,
+      usage: { input_tokens: 5, output_tokens: 3 },
+      result: "Just a plain-text answer, no JSON report.",
+    });
+
+    const normalized = normalizeExecutorReport(envelope, "", "fallback");
+
+    expect(normalized.metrics.tokenUsage).toBe(8);
+  });
+
+  it("preserves a legitimately self-reported zero tokenUsage when there is no envelope to fall back to", () => {
+    const normalized = normalizeExecutorReport(
+      JSON.stringify({
+        summary: "No changes needed.",
+        outputs: [],
+        issues: [],
+        recommendations: [],
+        metrics: { tokenUsage: 0 },
+      }),
+      "",
+      "fallback"
+    );
+
+    expect(normalized.metrics.tokenUsage).toBe(0);
+  });
+
+  it("does not let an explicit tokenUsage: 0 fall through to tokensUsed", () => {
+    const normalized = normalizeExecutorReport(
+      JSON.stringify({
+        summary: "No changes needed.",
+        outputs: [],
+        issues: [],
+        recommendations: [],
+        metrics: { tokenUsage: 0, tokensUsed: 99 },
+      }),
+      "",
+      "fallback"
+    );
+
+    expect(normalized.metrics.tokenUsage).toBe(0);
+    expect(normalized.metrics.tokensUsed).toBe(99);
+  });
 });

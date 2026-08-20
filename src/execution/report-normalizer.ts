@@ -45,6 +45,33 @@ function asOptionalBoolean(value: unknown): boolean | undefined {
   return typeof value === "boolean" ? value : undefined;
 }
 
+/**
+ * Real, CLI-measured token usage from a detected envelope (input + output +
+ * cache tokens - cache reads are still real billed cost even though they
+ * aren't "generation"). Used only as a fallback when the delegate's own
+ * self-reported metrics are absent or exactly zero - a delegate that did no
+ * "implementation work" by its own accounting still spent real tokens
+ * bootstrapping the subprocess call, and that's what cost tracking should
+ * reflect.
+ */
+function envelopeTokenFallback(envelope: CliEnvelope): number | undefined {
+  const usage = envelope.usage;
+  if (!usage) {
+    return undefined;
+  }
+  const fields = ["input_tokens", "output_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"];
+  let total = 0;
+  let sawAny = false;
+  for (const field of fields) {
+    const value = usage[field];
+    if (typeof value === "number" && Number.isFinite(value)) {
+      total += value;
+      sawAny = true;
+    }
+  }
+  return sawAny ? total : undefined;
+}
+
 function extractFencedJson(text: string): string | null {
   const fenced = text.match(/```json\s*([\s\S]*?)```/iu);
   return fenced?.[1]?.trim() ?? null;
@@ -155,7 +182,9 @@ export function normalizeExecutorReport(
   stderr: string,
   fallbackSummary: string
 ): NormalizedExecutorReport {
-  const { payload, parser, fallbackText } = parsePayload(stdout);
+  const { payload, parser, fallbackText, envelope } = parsePayload(stdout);
+  const envelopeFallback = envelope ? envelopeTokenFallback(envelope) : undefined;
+
   if (!payload) {
     const summary = fallbackText.trim() || stderr.trim() || fallbackSummary;
     return {
@@ -163,7 +192,7 @@ export function normalizeExecutorReport(
       outputs: [],
       issues: [],
       recommendations: [],
-      metrics: {},
+      metrics: envelopeFallback !== undefined ? { tokenUsage: envelopeFallback } : {},
       rawOutput: stdout,
       parser,
     };
@@ -172,6 +201,17 @@ export function normalizeExecutorReport(
   const metrics = typeof payload.metrics === "object" && payload.metrics !== null
     ? (payload.metrics as Record<string, unknown>)
     : {};
+
+  // `??`, not `||`: an explicit tokenUsage: 0 is a defined value and must not
+  // fall through to tokensUsed.
+  const selfReportedTokens = asOptionalNumber(metrics.tokenUsage) ?? asOptionalNumber(metrics.tokensUsed);
+  // A delegate that self-reports exactly 0 while an envelope is present still
+  // spent real tokens bootstrapping the subprocess call - fall back to the
+  // CLI's own measured usage rather than trusting an untrustworthy zero. But
+  // when there's no envelope to fall back to, a self-reported 0 is the best
+  // information available and must be preserved, not silently discarded to
+  // undefined.
+  const tokenUsage = selfReportedTokens ? selfReportedTokens : envelopeFallback ?? selfReportedTokens;
 
   return {
     summary:
@@ -182,7 +222,7 @@ export function normalizeExecutorReport(
     issues: asStringArray(payload.issues),
     recommendations: asStringArray(payload.recommendations),
     metrics: {
-      tokenUsage: asOptionalNumber(metrics.tokenUsage),
+      tokenUsage,
       tokensUsed: asOptionalNumber(metrics.tokensUsed),
       durationSeconds: asOptionalNumber(metrics.durationSeconds),
       testsPassed: asOptionalNumber(metrics.testsPassed),
