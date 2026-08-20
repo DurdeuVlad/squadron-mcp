@@ -16,6 +16,10 @@ vi.mock("node:fs", () => ({
   writeFileSync: vi.fn(),
 }));
 
+vi.mock("../../src/utils/bundled-templates.js", () => ({
+  scaffoldBuiltinTemplates: vi.fn(() => []),
+}));
+
 vi.mock("../../src/setup/auth-detection.js", () => ({
   detectAgentAuth: vi.fn(() => ({
     claude: { method: "global-cli", path: "/fake/anthropic/config.json" },

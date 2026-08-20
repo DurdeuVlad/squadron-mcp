@@ -1,15 +1,19 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, realpathSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 import { DEFAULT_CONFIG } from "./config/types.js";
 import { createDashboardServer } from "./dashboard/server.js";
+import { startServer } from "./index.js";
 import { runInitWizard } from "./setup/wizard.js";
 import { createTaskSpecTool } from "./tools/create-task-spec.js";
 import { createOrchestratorServicesFromConfig, type OrchestratorServices } from "./tools/registry.js";
 import { trackWorkflowTool } from "./tools/track-workflow.js";
+import { scaffoldBuiltinTemplates } from "./utils/bundled-templates.js";
+import { getPackageVersion } from "./utils/package-info.js";
 
 interface CliContext {
   out: (message: string) => void;
@@ -79,7 +83,7 @@ async function loadServices(configPath: string, templatesDir: string): Promise<O
 export function createCli(context: CliContext = defaultContext): Command {
   const program = new Command();
 
-  program.name("squadron").description("CLI for Squadron").version("0.2.0");
+  program.name("squadron").description("CLI for Squadron").version(getPackageVersion());
 
   program
     .command("init")
@@ -120,7 +124,11 @@ export function createCli(context: CliContext = defaultContext): Command {
 
         mkdirSync(templatesDir, { recursive: true });
         mkdirSync(resolve("state"), { recursive: true });
+        const copiedTemplates = scaffoldBuiltinTemplates(templatesDir);
         context.out(`Ensured directories: ${templatesDir}, ${resolve("state")}`);
+        if (copiedTemplates.length > 0) {
+          context.out(`Copied built-in templates: ${copiedTemplates.join(", ")}`);
+        }
       }
     );
 
@@ -219,6 +227,16 @@ export function createCli(context: CliContext = defaultContext): Command {
 }
 
 export async function runCli(argv = process.argv): Promise<void> {
+  if (argv.length <= 2) {
+    // Bare invocation (no subcommand) -- e.g. `squadron` with no args, which is
+    // exactly what a generated MCP client config runs (`npx squadron-mcp`) --
+    // starts the MCP server itself over stdio. Use the CLI subcommands (init,
+    // task, workflow, metrics, dashboard) for everything else. See
+    // docs/getting-started.md.
+    await startServer();
+    return;
+  }
+
   const cli = createCli();
   try {
     await cli.parseAsync(argv);
@@ -229,7 +247,21 @@ export async function runCli(argv = process.argv): Promise<void> {
   }
 }
 
-if (process.argv[1] && /cli\.(js|ts)$/u.test(process.argv[1])) {
+function isMainModule(): boolean {
+  if (!process.argv[1]) {
+    return false;
+  }
+  try {
+    // Resolve symlinks (e.g. an npm-installed bin shim like
+    // node_modules/.bin/squadron) before comparing against import.meta.url,
+    // which Node always resolves to the real file path.
+    return import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href;
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule()) {
   runCli().catch((error: unknown) => {
     const message = error instanceof Error ? error.message : String(error);
     defaultContext.err(message);

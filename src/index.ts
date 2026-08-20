@@ -6,9 +6,11 @@ import {
   ListPromptsRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import { realpathSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
 import { log } from "./utils/logger.js";
+import { getPackageVersion } from "./utils/package-info.js";
 import { createDefaultPromptRegistry } from "./prompts/index.js";
 import type { PromptRegistry } from "./prompts/registry.js";
 import { applyPlugins } from "./plugins/apply.js";
@@ -39,7 +41,7 @@ export function createServer(
   const server = new Server(
     {
       name: "squadron",
-      version: "0.2.0",
+      version: getPackageVersion(),
     },
     {
       capabilities: {
@@ -101,10 +103,20 @@ export async function startServer(): Promise<void> {
   });
 }
 
-const isMain =
-  process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
+function isMainModule(): boolean {
+  if (!process.argv[1]) {
+    return false;
+  }
+  try {
+    // Resolve symlinks (e.g. an npm bin shim) before comparing against
+    // import.meta.url, which Node always resolves to the real file path.
+    return import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href;
+  } catch {
+    return false;
+  }
+}
 
-if (isMain) {
+if (isMainModule()) {
   startServer().catch((error: unknown) => {
     const message = error instanceof Error ? error.message : "Unknown startup error.";
     log("error", "server.failed", { error: message });

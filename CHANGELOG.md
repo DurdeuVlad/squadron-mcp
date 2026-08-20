@@ -1,8 +1,21 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 - 2026-08-20
 
-- **Renamed the GitHub repository** from `DurdeuVlad/mcp-agent-orchestrator` to `DurdeuVlad/squadron-mcp`, completing the rename started in 0.2.0 (npm package, CLI, and MCP server identity already matched Squadron; the repo path was the last inconsistency). GitHub redirects the old URL automatically. See `docs/MIGRATION.md`.
+A live end-to-end test of real subprocess delegation surfaced a report-parsing bug and an unmeasured token-savings claim; fixing both honestly led to per-task model selection, task dependency tracking, and a named default orchestration pattern.
+
+**Fixes**
+- Fixed `normalizeExecutorReport` treating `claude --output-format json`'s own metadata envelope as the delegate's report — real summaries/outputs/issues and token usage were silently dropped for every real subprocess delegation to `claude`. Added envelope-aware token-usage fallback from the CLI's own `usage` fields when the delegate doesn't self-report.
+- Removed the fabricated "81% token savings" claim: `savingsVsBaseline`/`savingsPercentage` were computed against a hardcoded, never-measured `baselinePerTask = 800` baked in from an illustrative example in an old sprint doc. Replaced with honest real-usage reporting (`totalTokens`, `avgTokensPerTask`, per-agent cost) across `TokenTracker`, the CLI, the dashboard, and `optimize_tokens`. Removed the now-dead `tokenOptimization.savingsTarget`/`reportSavings` config fields along with it.
+- Reframed the README and docs around what subprocess delegation actually provides — time and automation across providers — instead of an unverified token-savings percentage.
+
+**Features**
+- Added per-task/per-agent model selection: `delegate_task` and `create_task_spec` accept an optional `model`, spliced into the real subprocess command via a per-agent `modelFlag` config (pre-configured for `claude` and `codex`, verified against their real `--help` output). Call-time `model` overrides a task-spec-time one; never applied to fallback attempts on a different provider.
+- Added task dependency tracking: `create_task_spec` accepts `dependsOn` (task IDs that must be `completed` first); `delegate_task` refuses delegation with a clear error while any are unmet; `track_workflow` reports per-task `readiness` (`"ready"`/`"blocked"`). No autonomous scheduler — Squadron stays a passive MCP server, the connecting client decides what to delegate next.
+- Documented Manager-Worker (planner-as-reviewer) as Squadron's default coordination pattern — already true with zero code changes, now named. See `docs/orchestration-patterns.md`.
+
+**Repo**
+- Renamed the GitHub repository from `DurdeuVlad/mcp-agent-orchestrator` to `DurdeuVlad/squadron-mcp`, completing the rename started in 0.2.0 (npm package, CLI, and MCP server identity already matched Squadron; the repo path was the last inconsistency). GitHub redirects the old URL automatically. See `docs/MIGRATION.md`.
 - Enabled GitHub Discussions.
 
 ## 0.2.0 - 2026-08-19

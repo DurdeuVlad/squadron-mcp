@@ -56,6 +56,12 @@ describe("CLI", () => {
       readFileSync(join(dir, "squadron-config.json"), "utf8")
     ) as OrchestratorConfig;
     expect(parsed.stateStorage).toBe("file");
+
+    expect(output.some((line) => line.includes("Copied built-in templates"))).toBe(true);
+    const scaffoldedTemplate = JSON.parse(
+      readFileSync(join(dir, "templates", "typescript-feature.json"), "utf8")
+    ) as { name: string };
+    expect(scaffoldedTemplate.name).toBe("typescript-feature");
   });
 
   it("stays non-interactive when stdout is a TTY but stdin is not (piped/redirected input)", async () => {

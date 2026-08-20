@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { DEFAULT_CONFIG } from "../config/types.js";
+import { scaffoldBuiltinTemplates } from "../utils/bundled-templates.js";
 import { detectAgentAuth, type AgentName } from "./auth-detection.js";
 import { generateMcpClientConfigSnippet } from "./client-config.js";
 
@@ -91,7 +92,11 @@ export async function runInitWizard(
 
   mkdirSync(templatesDir, { recursive: true });
   mkdirSync(resolve("state"), { recursive: true });
+  const copiedTemplates = scaffoldBuiltinTemplates(templatesDir);
   context.out(`Ensured directories: ${templatesDir}, ${resolve("state")}`);
+  if (copiedTemplates.length > 0) {
+    context.out(`Copied built-in templates: ${copiedTemplates.join(", ")}`);
+  }
 
   const snippet = generateMcpClientConfigSnippet();
   note(
