@@ -23,6 +23,24 @@ function seedTask(stateManager: StateManager, id: string): void {
   });
 }
 
+function seedClaudeTask(stateManager: StateManager, id: string, model?: string): void {
+  stateManager.createTask({
+    id,
+    task: "Seed task",
+    executor: "claude",
+    model,
+    template: "typescript-feature",
+    context: {},
+    inputs: {},
+    executionSteps: ["step 1"],
+    expectedOutputs: [{ name: "out", description: "desc" }],
+    successCriteria: ["done"],
+    metadata: {
+      created: new Date().toISOString(),
+    },
+  });
+}
+
 function mockResult(
   agent: "claude" | "gemini" | "codex",
   status: AgentExecutionResult["status"],
@@ -257,5 +275,119 @@ describe("delegateTaskTool", () => {
     expect(task?.status).toBe("failed");
     expect(task?.report?.summary).toContain("failed");
     expect(task?.executionHistory.length).toBe(2);
+  });
+
+  it("applies a call-time model override to the executed command and records it", async () => {
+    const services = createOrchestratorServices("templates", {
+      ...DEFAULT_CONFIG,
+      roleBoundaries: { ...DEFAULT_CONFIG.roleBoundaries, enforce: false },
+    });
+    seedClaudeTask(services.stateManager, "task-model-override", "task-spec-model");
+    const runner = createMockRunner([
+      mockResult("claude", "completed", {
+        stdout: '{"summary":"done","outputs":[],"issues":[],"recommendations":[],"metrics":{}}',
+      }),
+    ]);
+    const tool = delegateTaskTool({
+      stateManager: services.stateManager,
+      roleEnforcer: services.roleEnforcer,
+      delegationRuntime: {
+        ...DEFAULT_CONFIG.delegationRuntime,
+        enabled: true,
+        fallbackOnFailure: false,
+      },
+      agentRunner: runner,
+    });
+
+    const result = await tool.handler(
+      tool.schema.parse({
+        taskId: "task-model-override",
+        executor: "claude",
+        executionMode: "subprocess",
+        model: "call-time-model",
+      })
+    );
+
+    const runMock = runner.run as unknown as ReturnType<typeof vi.fn>;
+    const calledArgs = runMock.mock.calls[0][0].command.args as string[];
+    expect(calledArgs).toEqual(expect.arrayContaining(["--model", "call-time-model"]));
+    expect(calledArgs).not.toContain("task-spec-model");
+    expect(result.execution?.model).toBe("call-time-model");
+
+    const task = services.stateManager.getTask("task-model-override");
+    expect(task?.execution?.model).toBe("call-time-model");
+    expect(task?.report?.model).toBe("call-time-model");
+  });
+
+  it("falls back to the task spec's model when no call-time model is given", async () => {
+    const services = createOrchestratorServices("templates", {
+      ...DEFAULT_CONFIG,
+      roleBoundaries: { ...DEFAULT_CONFIG.roleBoundaries, enforce: false },
+    });
+    seedClaudeTask(services.stateManager, "task-model-spec", "task-spec-model");
+    const runner = createMockRunner([
+      mockResult("claude", "completed", {
+        stdout: '{"summary":"done","outputs":[],"issues":[],"recommendations":[],"metrics":{}}',
+      }),
+    ]);
+    const tool = delegateTaskTool({
+      stateManager: services.stateManager,
+      roleEnforcer: services.roleEnforcer,
+      delegationRuntime: {
+        ...DEFAULT_CONFIG.delegationRuntime,
+        enabled: true,
+        fallbackOnFailure: false,
+      },
+      agentRunner: runner,
+    });
+
+    const result = await tool.handler(
+      tool.schema.parse({
+        taskId: "task-model-spec",
+        executor: "claude",
+        executionMode: "subprocess",
+      })
+    );
+
+    const runMock = runner.run as unknown as ReturnType<typeof vi.fn>;
+    const calledArgs = runMock.mock.calls[0][0].command.args as string[];
+    expect(calledArgs).toEqual(expect.arrayContaining(["--model", "task-spec-model"]));
+    expect(result.execution?.model).toBe("task-spec-model");
+  });
+
+  it("omits the model flag when no model is requested at all", async () => {
+    const services = createOrchestratorServices("templates", {
+      ...DEFAULT_CONFIG,
+      roleBoundaries: { ...DEFAULT_CONFIG.roleBoundaries, enforce: false },
+    });
+    seedClaudeTask(services.stateManager, "task-model-none");
+    const runner = createMockRunner([
+      mockResult("claude", "completed", {
+        stdout: '{"summary":"done","outputs":[],"issues":[],"recommendations":[],"metrics":{}}',
+      }),
+    ]);
+    const tool = delegateTaskTool({
+      stateManager: services.stateManager,
+      roleEnforcer: services.roleEnforcer,
+      delegationRuntime: {
+        ...DEFAULT_CONFIG.delegationRuntime,
+        enabled: true,
+        fallbackOnFailure: false,
+      },
+      agentRunner: runner,
+    });
+
+    const result = await tool.handler(
+      tool.schema.parse({
+        taskId: "task-model-none",
+        executor: "claude",
+        executionMode: "subprocess",
+      })
+    );
+
+    const runMock = runner.run as unknown as ReturnType<typeof vi.fn>;
+    const calledArgs = runMock.mock.calls[0][0].command.args as string[];
+    expect(calledArgs).not.toContain("--model");
+    expect(result.execution?.model).toBeUndefined();
   });
 });

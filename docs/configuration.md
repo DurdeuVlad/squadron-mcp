@@ -73,6 +73,34 @@ Notes:
   - `subprocess`
   - `auto` (uses config)
 
+### Per-Task Model Selection
+
+Every real subprocess delegation re-bootstraps a full agent session, which costs roughly the same regardless of how simple the task is. Rather than always paying for the executor's default model, you can request a cheaper or more capable one per task.
+
+Add `modelFlag` to an agent's command config, templated like `args`:
+
+```json
+{
+  "delegationRuntime": {
+    "agents": {
+      "claude": {
+        "command": "claude",
+        "args": ["-p", "{prompt}", "--output-format", "json"],
+        "modelFlag": ["--model", "{model}"]
+      }
+    }
+  }
+}
+```
+
+Then request a model:
+- At delegation time: `delegate_task({ taskId, executor, model: "sonnet" })` — overrides everything else.
+- At task-creation time: pass `model` to `create_task_spec` so a task always uses the same model without repeating it on every `delegate_task` call.
+
+If a call-time `model` and a task-spec `model` are both set, the call-time value wins. If no `modelFlag` is configured for an agent, `model` is ignored and the command runs unchanged.
+
+Squadron ships `modelFlag` pre-configured for `claude` (`--model`) and `codex` (`--model`), verified against each CLI's own `--help` output. `gemini`'s `modelFlag` is left unset until its real flag syntax is verified — never guess a flag; an unverified one silently fails against the real CLI.
+
 ### Interactive Sessions
 
 Squadron also supports persistent terminal sessions for subprocess execution (Windows-only, see below). See [Interactive Sessions](interactive-sessions.md) for a full guide.
